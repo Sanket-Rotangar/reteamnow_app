@@ -1,0 +1,18 @@
+{
+    "msg": "Login successful",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OTI2YTU1MThiOTgyMWFiMGIxMDI0NyIsImVtYWlsIjoic2Fua2V0MTBAZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciIsInVzZXJuYW1lIjoic2Fua2V0ZGV2MTAiLCJpYXQiOjE3NTQ1OTU0MzQsImV4cCI6MTc1NTIwMDIzNH0.MbMzr1LMnhr0VQsOyJbuTHtSGuVsR22hg1xx9Com55I",
+    "user": {
+        "id": "68926a5518b9821ab0b10247",
+        "fname": "sanket",
+        "lname": "dev10",
+        "email": "sanket10@example.com",
+        "username": "sanketdev10",
+        "teamTitle": [],
+        "userLogo": " ",
+        "workspaceName": [],
+        "role": "user",
+        "jobRole": "",
+        "directManager": null,
+        "dottedLineManager": null
+    }
+}
