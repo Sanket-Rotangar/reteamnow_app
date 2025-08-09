@@ -7,6 +7,7 @@
 
 import React, { useEffect } from 'react';
 import RootNavigator from './src/navigation/RootNavigator';
+import { NavigationContainer } from '@react-navigation/native';
 import { AuthProvider } from './src/context/authContext';
 import BootSplash from 'react-native-bootsplash';
 // import { TamaguiProvider, View } from '@tamagui/core';
@@ -24,11 +25,11 @@ function App() {
     init();
   }, []);
   return (
-    // <TamaguiProvider config={config}>
+    <NavigationContainer>
       <AuthProvider>
         <RootNavigator />
       </AuthProvider>
-    // </TamaguiProvider>
+    </NavigationContainer>
   );
 }
 

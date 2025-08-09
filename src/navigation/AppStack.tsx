@@ -21,7 +21,7 @@ import BottomTabs from './BottomTabs';
 
 // Import drawer screens
 import AnnouncementsScreen from '../screens/DrawerScreens/AnnouncementsScreen';
-import LeaderboardScreen from '../screens/DrawerScreens/LeaderboardScreen';
+import GoogleFit from '../screens/DrawerScreens/GoogleFit';
 import ProfileScreen from '../screens/DrawerScreens/ProfileScreen';
 
 // Import context
@@ -89,11 +89,11 @@ const AppStack = () => {
 
       {/* Leaderboard Screen */}
       <Drawer.Screen
-        name="Leaderboard"
-        component={LeaderboardScreen}
+        name="GoogleFit"
+        component={GoogleFit}
         options={{
-          drawerLabel: 'Leaderboard',
-          title: 'Employee Leaderboard',
+          drawerLabel: 'GoogleFit',
+          title: 'GoogleFit',
           drawerIcon: () => <Text style={{ fontSize: 20 }}>🏆</Text>,
         }}
       />

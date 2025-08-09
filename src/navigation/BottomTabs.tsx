@@ -19,6 +19,7 @@ import HomeScreen from '../screens/TabScreens/HomeScreen';
 import AttendanceScreen from '../screens/TabScreens/AttendanceScreen';
 import FunZoneScreen from '../screens/TabScreens/FunZoneScreen';
 import SettingsScreen from '../screens/TabScreens/SettingsScreen';
+import BasicHealthScreen from '../screens/TabScreens/BasicHealthScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -52,6 +53,9 @@ const TabIcon = ({ route, focused, color, size }: any) => {
     case 'AttendanceTab':
       iconText = '⏰';
       break;
+    case 'HealthTab':
+      iconText = '❤️';
+      break;
     case 'FunZoneTab':
       iconText = '🎉';
       break;
@@ -84,6 +88,7 @@ const createTabIcon = (routeName: string) => ({ focused, color, size }: any) => 
 const tabIcons = {
   HomeTab: createTabIcon('HomeTab'),
   AttendanceTab: createTabIcon('AttendanceTab'),
+  HealthTab: createTabIcon('HealthTab'),
   FunZoneTab: createTabIcon('FunZoneTab'),
   SettingsTab: createTabIcon('SettingsTab'),
 };
@@ -126,6 +131,16 @@ const BottomTabs = () => {
         }}
       />
       
+      {/* Fun Zone Tab - Employee engagement activities */}
+      <Tab.Screen 
+        name="HealthTab" 
+        component={BasicHealthScreen}
+        options={{
+          tabBarLabel: 'Health',
+          tabBarAccessibilityLabel: 'Navigate to Health tracking'
+        }}
+      />
+
       {/* Fun Zone Tab - Employee engagement activities */}
       <Tab.Screen 
         name="FunZoneTab" 
