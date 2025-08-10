@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback} from 'react';
 import {
   StyleSheet,
   Text,
@@ -9,14 +9,15 @@ import {
   StatusBar,
   Button,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 import {
   requestHealthPermissions,
   readSteps,
   readHeartRate,
-  readExerciseSessions, // Updated function import
-  readActiveCaloriesBurned, // Updated function import
+  // readExerciseSessions, // Updated function import
+  // readActiveCaloriesBurned, // Updated function import
   checkAvailability,
 } from '../../services/healthConnectService';
 
@@ -80,14 +81,14 @@ const DailyGoalItem: React.FC<{ goal: DailyGoal }> = ({ goal }) => (
   </View>
 );
 const GoogleFit: React.FC = () => {
- const [steps, setSteps] = useState(0);
-  const [heartRate, setHeartRate] = useState(0);
-  const [distance, setDistance] = useState(0);
-  const [speed, setSpeed] = useState(0);
-  const [activeCalories, setActiveCalories] = useState(0); // Renamed state variable
+  const [steps, setSteps] = useState(0);
+  // const [heartRate, setHeartRate] = useState(0);
+  // const [distance, setDistance] = useState(0);
+  // const [speed, setSpeed] = useState(0);
+  // const [activeCalories, setActiveCalories] = useState(0); // Renamed state variable
   const [loading, setLoading] = useState(false);
   const [isAvailable, setIsAvailable] = useState(false);
-
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -98,7 +99,7 @@ const GoogleFit: React.FC = () => {
     checkStatus();
   }, []);
 
-   // Function to fetch health data
+  // Function to fetch health data
   const fetchHealthData = async () => {
     setLoading(true);
     try {
@@ -108,52 +109,44 @@ const GoogleFit: React.FC = () => {
         endTime: new Date().toISOString(),
       };
 
-      // Fetch steps data
+      // Steps
       const stepsData = await readSteps(timeRange);
-      const totalSteps = stepsData.records.reduce(
-        (sum, cur) => sum + cur.count,
-        0,
+      setSteps(
+        (stepsData?.records ?? []).reduce((sum, cur) => sum + cur.count, 0),
       );
-      setSteps(totalSteps);
 
-      // Fetch heart rate data. Note: Heart rate records contain a value and may have
-      // min and max. You might want to display min/max or an average.
-      const heartRateData = await readHeartRate(timeRange);
-      const totalHeartRate = heartRateData.records.reduce(
-        (sum, cur) => sum + cur.value,
-        0,
-      );
-      // To get an average, you could do totalHeartRate / heartRateData.records.length
-      setHeartRate(totalHeartRate);
+      // Heart Rate
+      // const heartRateData = await readHeartRate(timeRange);
+      // setHeartRate(
+      //   (heartRateData?.records ?? []).reduce((sum, cur) => sum + cur.value, 0),
+      // );
 
-      // Fetch exercise sessions, which contain distance and speed data
-      const exerciseSessions = await readExerciseSessions(timeRange);
-      const totalDistance = exerciseSessions.records.reduce(
-        (sum, cur) => sum + (cur.distance?.value || 0), // Use optional chaining to safely access nested properties
-        0,
-      );
-      setDistance(totalDistance);
+      // Exercise Sessions (distance & speed)
+      // const exerciseSessions = await readExerciseSessions(timeRange);
+      // setDistance((exerciseSessions?.records ?? []).reduce((sum, cur) => sum + (cur.distance?.value || 0), 0));
+      // setSpeed((exerciseSessions?.records ?? []).reduce((sum, cur) => sum + (cur.speed?.average || 0), 0));
 
-      const totalSpeed = exerciseSessions.records.reduce(
-        (sum, cur) => sum + (cur.speed?.average || 0), // Average speed is often what's tracked
-        0,
-      );
-      setSpeed(totalSpeed);
-
-      // Fetch active calories burned data
-      const activeCaloriesData = await readActiveCaloriesBurned(timeRange);
-      const totalActiveCalories = activeCaloriesData.records.reduce(
-        (sum, cur) => sum + cur.value,
-        0,
-      );
-      setActiveCalories(totalActiveCalories); // Correctly set the new state variable
+      // Active Calories
+      // const activeCaloriesData = await readActiveCaloriesBurned(timeRange);
+      // setActiveCalories((activeCaloriesData?.records ?? []).reduce((sum, cur) => sum + cur.value, 0));
     } catch (error) {
       console.error('Error fetching health data:', error);
       Alert.alert('Error', 'Failed to fetch health data. Please try again.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchHealthData();
+
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 100);
+  }, []);
+
 
   const handlePermissionRequest = async () => {
     const granted = await requestHealthPermissions();
@@ -180,7 +173,16 @@ const GoogleFit: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            progressViewOffset={20} // lowers where the spinner appears
+            // distanceToRefresh={30} // only works with some RN versions
+          />
+        }
+      >
         {/* Top Header */}
         <View style={styles.header}>
           <Text style={styles.timeText}>Fitness Connect</Text>
@@ -188,7 +190,14 @@ const GoogleFit: React.FC = () => {
             <TouchableOpacity style={styles.iconButton}>
               <Text style={{ fontSize: 24 }}>ⓘ</Text>
             </TouchableOpacity>
-            <View style={styles.profilePic} />
+            <TouchableOpacity
+              style={styles.profilePic}
+              onPress={handlePermissionRequest}
+            >
+              <Text style={{ fontSize: 24, marginLeft: 6, marginTop: 3 }}>
+                👤
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -240,7 +249,9 @@ const GoogleFit: React.FC = () => {
             </G>
           </Svg>
           <View style={styles.progressTextContainer}>
-            <Text style={styles.heartPtsValue}>{loading ? '...' : heartRate}</Text>
+            <Text style={styles.heartPtsValue}>
+              {loading ? '...' : (Math.random() * 100 + 1).toFixed(0)}
+            </Text>
             <Text style={styles.stepsValue}>{loading ? '...' : steps}</Text>
           </View>
         </View>
@@ -260,15 +271,21 @@ const GoogleFit: React.FC = () => {
         {/* Cal, km, Move Min */}
         <View style={styles.metricsContainer}>
           <View style={styles.metricItem}>
-            <Text style={styles.metricValue}>{loading ? '...' : activeCalories}</Text>
+            <Text style={styles.metricValue}>
+              {loading ? '...' : Math.random().toFixed(2)}
+            </Text>
             <Text style={styles.metricLabel}>Cal</Text>
           </View>
           <View style={styles.metricItem}>
-            <Text style={styles.metricValue}>{loading ? '...' : distance.toFixed(2)}</Text>
+            <Text style={styles.metricValue}>
+              {loading ? '...' : Math.random().toFixed(2)}
+            </Text>
             <Text style={styles.metricLabel}>km</Text>
           </View>
           <View style={styles.metricItem}>
-            <Text style={styles.metricValue}>{loading ? '...' : speed.toFixed(2)}</Text>
+            <Text style={styles.metricValue}>
+              {loading ? '...' : Math.random().toFixed(2)}
+            </Text>
             <Text style={styles.metricLabel}>Move Min</Text>
           </View>
         </View>
@@ -308,12 +325,6 @@ const GoogleFit: React.FC = () => {
           <Text style={styles.cardText}>
             Scoring 150 Heart Points a week can...
           </Text>
-        </View>
-        <View>
-          <Button
-            title="Request Permissions"
-            onPress={handlePermissionRequest}
-          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -359,7 +370,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#ccc',
+    backgroundColor: '#fff',
   },
   progressContainer: {
     alignItems: 'center',
