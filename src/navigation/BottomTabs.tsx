@@ -18,7 +18,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import HomeScreen from '../screens/TabScreens/HomeScreen';
 import AttendanceScreen from '../screens/TabScreens/AttendanceScreen';
 import FunZoneScreen from '../screens/TabScreens/FunZoneScreen';
-import SettingsScreen from '../screens/TabScreens/SettingsScreen';
+import SettingsStack from '../navigation/SettingsStack';
 import GoogleFit from '../screens/TabScreens/GoogleFit';
 
 const Tab = createBottomTabNavigator();
@@ -96,6 +96,7 @@ const tabIcons = {
 const BottomTabs = () => {
   return (
     <Tab.Navigator
+      id={undefined}
       screenOptions={({ route }) => ({
         // Remove default header since we'll implement custom ones in each screen
         headerShown: false,
@@ -154,7 +155,7 @@ const BottomTabs = () => {
       {/* Settings Tab - Profile and app preferences */}
       <Tab.Screen 
         name="SettingsTab" 
-        component={SettingsScreen}
+        component={SettingsStack}
         options={{
           tabBarLabel: 'Settings',
           tabBarAccessibilityLabel: 'Navigate to Settings and Profile'

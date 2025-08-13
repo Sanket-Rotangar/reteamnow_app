@@ -23,6 +23,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import colors from '../../config/colors';
 import { AuthContext } from '../../context/authContext';
+// import Toast from 'react-native-toast-message';
 /**
  * Interface for dashboard stats
  */
@@ -223,10 +224,7 @@ const HomeScreen = () => {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.highlightCard}
-            onPress={() => navigation.navigate('Leaderboard' as never)}
-          >
+          <TouchableOpacity style={styles.highlightCard}>
             <View style={styles.highlightHeader}>
               <Text style={styles.highlightIcon}>�</Text>
               <View style={styles.highlightContent}>
@@ -240,7 +238,7 @@ const HomeScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Welcome Message */}
+        {/* Welcome Message
         <View style={styles.welcomeCard}>
           <Text style={styles.welcomeTitle}>🎉 Welcome to Employee Hub!</Text>
           <Text style={styles.welcomeText}>
@@ -248,7 +246,7 @@ const HomeScreen = () => {
             and more. Stay connected with your colleagues and never miss
             important updates.
           </Text>
-        </View>
+        </View> */}
       </ScrollView>
     </View>
   );

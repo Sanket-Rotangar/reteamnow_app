@@ -15,7 +15,7 @@ import Svg, { Circle, G } from 'react-native-svg';
 import {
   requestHealthPermissions,
   readSteps,
-  readHeartRate,
+  // readHeartRate,
   // readExerciseSessions, // Updated function import
   // readActiveCaloriesBurned, // Updated function import
   checkAvailability,

@@ -14,17 +14,21 @@
 import React, { useContext } from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import AdminPanelScreen from '../screens/DrawerScreens/AdminPanelScreen';
-import { Text } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 
 // Import navigation components
 import BottomTabs from './BottomTabs';
 
 // Import drawer screens
 import AnnouncementsScreen from '../screens/DrawerScreens/AnnouncementsScreen';
-import ProfileScreen from '../screens/DrawerScreens/ProfileScreen';
 
 // Import context
 import { AuthContext } from '../context/authContext';
+
+// Icon components - defined outside render to prevent recreation
+const DashboardIcon = () => <Text style={styles.iconText}>🏠</Text>;
+const AnnouncementsIcon = () => <Text style={styles.iconText}>📢</Text>;
+const AdminIcon = () => <Text style={styles.iconText}>⚙️</Text>;
 
 const Drawer = createDrawerNavigator();
 
@@ -37,6 +41,7 @@ const AppStack = () => {
 
   return (
     <Drawer.Navigator
+      id={undefined}
       initialRouteName="Dashboard"
       screenOptions={{
         headerShown: false,
@@ -60,18 +65,7 @@ const AppStack = () => {
         options={{
           drawerLabel: 'Dashboard',
           title: 'Employee Hub',
-          drawerIcon: () => <Text style={{ fontSize: 20 }}>🏠</Text>,
-        }}
-      />
-
-      {/* Profile Screen */}
-      <Drawer.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          drawerLabel: 'Profile',
-          title: 'My Profile',
-          drawerIcon: () => <Text style={{ fontSize: 20 }}>👤</Text>,
+          drawerIcon: DashboardIcon,
         }}
       />
 
@@ -82,7 +76,7 @@ const AppStack = () => {
         options={{
           drawerLabel: 'Announcements',
           title: 'Announcements',
-          drawerIcon: () => <Text style={{ fontSize: 20 }}>📢</Text>,
+          drawerIcon: AnnouncementsIcon,
         }}
       />
 
@@ -94,7 +88,7 @@ const AppStack = () => {
           options={{
             drawerLabel: 'Admin Panel',
             title: 'Admin Dashboard',
-            drawerIcon: () => <Text style={{ fontSize: 20 }}>⚙️</Text>,
+            drawerIcon: AdminIcon,
           }}
         />
       )}
@@ -103,3 +97,10 @@ const AppStack = () => {
 };
 
 export default AppStack;
+
+// Styles
+const styles = StyleSheet.create({
+  iconText: {
+    fontSize: 20,
+  },
+});

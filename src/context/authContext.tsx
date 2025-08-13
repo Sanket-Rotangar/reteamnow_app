@@ -14,7 +14,13 @@ type AuthContextType = {
   userToken: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (fname: string, lname: string, username: string, email: string, password: string) => Promise<void>;
+  register: (
+    fname: string,
+    lname: string,
+    username: string,
+    email: string,
+    password: string,
+  ) => Promise<void>;
   userInfo: User | null;
 };
 
@@ -46,6 +52,7 @@ export const AuthProvider = ({ children }: any) => {
     setUserInfo(res.user);
     await AsyncStorage.setItem('userToken', res.token);
     await AsyncStorage.setItem('userInfo', JSON.stringify(res.user));
+    console.log('User logged in');
   };
 
   const logout = async () => {
@@ -53,14 +60,23 @@ export const AuthProvider = ({ children }: any) => {
     setUserInfo(null);
     await AsyncStorage.removeItem('userToken');
     await AsyncStorage.removeItem('userInfo');
+    console.log('User logged out');
   };
 
-  const register = async (fname: string, lname: string, username: string, email: string, password: string) => {
+  const register = async (
+    fname: string,
+    lname: string,
+    username: string,
+    email: string,
+    password: string,
+  ) => {
     await registerUser(fname, lname, username, email, password);
   };
 
   return (
-    <AuthContext.Provider value={{ userToken, login, logout, register, userInfo }}>
+    <AuthContext.Provider
+      value={{ userToken, login, logout, register, userInfo }}
+    >
       {children}
     </AuthContext.Provider>
   );

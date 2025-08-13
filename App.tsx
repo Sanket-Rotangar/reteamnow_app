@@ -10,8 +10,9 @@ import RootNavigator from './src/navigation/RootNavigator';
 import { NavigationContainer } from '@react-navigation/native';
 import { AuthProvider } from './src/context/authContext';
 import BootSplash from 'react-native-bootsplash';
-// import { TamaguiProvider, View } from '@tamagui/core';
-// import config from './tamagui.config';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
+
 function App() {
   useEffect(() => {
     const init = async () => {
@@ -25,11 +26,14 @@ function App() {
     init();
   }, []);
   return (
-    <NavigationContainer>
-      <AuthProvider>
-        <RootNavigator />
-      </AuthProvider>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
+      </NavigationContainer>
+      <Toast />
+    </SafeAreaProvider>
   );
 }
 

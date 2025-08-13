@@ -1,7 +1,7 @@
 // src/services/authService.ts
 import axios from 'axios';
 
-const API_BASE_URL = 'http://10.0.0.66:8062';
+export const API_BASE_URL = 'http://10.0.0.190:8062/api';
 
 export const registerUser = async (
   fname: string,
@@ -10,7 +10,7 @@ export const registerUser = async (
   email: string,
   password: string,
 ) => {
-  const res = await axios.post(`${API_BASE_URL}/api/user/create-user`, {
+  const res = await axios.post(`${API_BASE_URL}/user/create-user`, {
     fname,
     lname,
     username,
@@ -21,10 +21,13 @@ export const registerUser = async (
 };
 
 export const loginUser = async (email: string, password: string) => {
-  const res = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+  const res = await axios.post(`${API_BASE_URL}/auth/login`, {
     email,
     password,
   });
-  console.log(res.data);
   return res.data;
 };
+
+
+// for logout its just clearing the token from AsyncStorage
+

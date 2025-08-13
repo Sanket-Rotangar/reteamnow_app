@@ -1,26 +1,26 @@
 /**
  * Attendance Screen Component
- * 
+ *
  * This screen handles all attendance-related functionality as per requirements:
  * - Mark Daily Attendance (single-tap check-in/check-out system)
  * - Leave Application (form to apply for leave with different types)
  * - Leave History (displays all applied leaves with status)
- * 
+ *
  * Features modern UI with card-based layout and intuitive interactions
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   StatusBar,
   RefreshControl,
 } from 'react-native';
-
+import Toast from 'react-native-toast-message';
+// import colors from '../../config/colors'
 /**
  * Modern Color Palette
  */
@@ -36,6 +36,7 @@ const colors = {
   textSecondary: '#6B7280',
   border: '#E5E7EB',
   accent: '#F3F4F6',
+  statusBar: '#1F2937',
 };
 
 /**
@@ -68,10 +69,10 @@ const AttendanceScreen = () => {
     isCheckedIn: false,
     date: new Date().toDateString(),
   });
-  
+
   const [refreshing, setRefreshing] = useState(false);
   const [leaveHistory] = useState<LeaveApplication[]>([
-    // Sample data - in real app this would come from API
+    // Sample data - hardcoded leave history
     {
       id: '1',
       type: 'Sick Leave',
@@ -93,66 +94,45 @@ const AttendanceScreen = () => {
   ]);
 
   /**
-   * Load attendance status on component mount
+   * Handle check-in/check-out attendance action - local state only
    */
-  useEffect(() => {
-    loadAttendanceStatus();
-  }, []);
+  const handleAttendanceAction = () => {
+    const currentTime = new Date().toLocaleTimeString();
 
-  /**
-   * Load current attendance status from local storage or API
-   */
-  const loadAttendanceStatus = async () => {
-    try {
-      // In real app, this would fetch from API
-      // For demo, we'll simulate loading current status
-      const currentDate = new Date().toDateString();
+    if (!attendanceStatus.isCheckedIn) {
+      // Check-in action
       setAttendanceStatus(prev => ({
         ...prev,
-        date: currentDate,
+        isCheckedIn: true,
+        checkInTime: currentTime,
       }));
-    } catch (error) {
-      console.error('Error loading attendance status:', error);
-    }
-  };
-
-  /**
-   * Handle check-in/check-out attendance action
-   */
-  const handleAttendanceAction = async () => {
-    try {
-      const currentTime = new Date().toLocaleTimeString();
       
-      if (!attendanceStatus.isCheckedIn) {
-        // Check-in action
-        setAttendanceStatus(prev => ({
-          ...prev,
-          isCheckedIn: true,
-          checkInTime: currentTime,
-        }));
-        
-        Alert.alert(
-          'Check-in Successful! ✅',
-          `You have checked in at ${currentTime}`,
-          [{ text: 'OK' }]
-        );
-      } else {
-        // Check-out action
-        setAttendanceStatus(prev => ({
-          ...prev,
-          isCheckedIn: false,
-          checkOutTime: currentTime,
-          totalHours: calculateWorkHours(prev.checkInTime!, currentTime),
-        }));
-        
-        Alert.alert(
-          'Check-out Successful! 🎉',
-          `You have checked out at ${currentTime}`,
-          [{ text: 'OK' }]
-        );
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to update attendance. Please try again.');
+      Toast.show({
+        type: 'success',
+        text1: 'Check in Successful',
+        text2: 'Welcome back! 🎉',
+        position: 'top',
+        visibilityTime: 1000,
+        topOffset: 105,
+      });
+    } else {
+      // Check-out action
+      const totalHours = calculateWorkHours(attendanceStatus.checkInTime!, currentTime);
+      setAttendanceStatus(prev => ({
+        ...prev,
+        isCheckedIn: false,
+        checkOutTime: currentTime,
+        totalHours: totalHours,
+      }));
+
+      Toast.show({
+        type: 'success',
+        text1: 'Check out Successful',
+        text2: `You checked out at ${currentTime}`,
+        position: 'top',
+        visibilityTime: 1000,
+        topOffset: 105,
+      });
     }
   };
 
@@ -173,23 +153,27 @@ const AttendanceScreen = () => {
   };
 
   /**
-   * Handle leave application - opens leave application form
+   * Handle leave application - placeholder
    */
   const handleLeaveApplication = () => {
-    Alert.alert(
-      'Apply for Leave',
-      'Leave application form will be implemented in the next iteration.',
-      [{ text: 'OK' }]
-    );
+    Toast.show({
+      type: 'error',
+      text1: 'Feature Coming Soon.....',
+      position: 'top',
+      visibilityTime: 1000,
+      topOffset: 105,
+    });
   };
 
   /**
-   * Handle refresh action
+   * Handle refresh action - placeholder
    */
-  const onRefresh = async () => {
+  const onRefresh = () => {
     setRefreshing(true);
-    await loadAttendanceStatus();
-    setRefreshing(false);
+    // Just reset to default state
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
   };
 
   /**
@@ -216,22 +200,22 @@ const AttendanceScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
-      
+    <ScrollView
+      style={styles.scrollContainer}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+      showsVerticalScrollIndicator={true}
+    >
+      <StatusBar backgroundColor={colors.statusBar} />
       {/* Header Section */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Attendance & Leave</Text>
-        <Text style={styles.headerSubtitle}>Track your work hours and manage leaves</Text>
+        <Text style={styles.headerSubtitle}>
+          Track your work hours and manage leaves
+        </Text>
       </View>
-
-      <ScrollView
-        style={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.container}>
         {/* Current Date Display */}
         <View style={styles.dateCard}>
           <Text style={styles.dateText}>📅 {attendanceStatus.date}</Text>
@@ -241,10 +225,16 @@ const AttendanceScreen = () => {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Daily Attendance</Text>
-            <View style={[
-              styles.statusBadge,
-              { backgroundColor: attendanceStatus.isCheckedIn ? colors.success : colors.error }
-            ]}>
+            <View
+              style={[
+                styles.statusBadge,
+                {
+                  backgroundColor: attendanceStatus.isCheckedIn
+                    ? colors.success
+                    : colors.error,
+                },
+              ]}
+            >
               <Text style={styles.statusBadgeText}>
                 {attendanceStatus.isCheckedIn ? 'Checked In' : 'Not Checked In'}
               </Text>
@@ -256,17 +246,21 @@ const AttendanceScreen = () => {
             {attendanceStatus.checkInTime && (
               <View style={styles.timeRow}>
                 <Text style={styles.timeLabel}>Check-in Time:</Text>
-                <Text style={styles.timeValue}>{attendanceStatus.checkInTime}</Text>
+                <Text style={styles.timeValue}>
+                  {attendanceStatus.checkInTime}
+                </Text>
               </View>
             )}
-            
+
             {attendanceStatus.checkOutTime && (
               <View style={styles.timeRow}>
                 <Text style={styles.timeLabel}>Check-out Time:</Text>
-                <Text style={styles.timeValue}>{attendanceStatus.checkOutTime}</Text>
+                <Text style={styles.timeValue}>
+                  {attendanceStatus.checkOutTime}
+                </Text>
               </View>
             )}
-            
+
             {attendanceStatus.totalHours && (
               <View style={styles.timeRow}>
                 <Text style={styles.timeLabel}>Total Hours:</Text>
@@ -281,7 +275,11 @@ const AttendanceScreen = () => {
           <TouchableOpacity
             style={[
               styles.attendanceButton,
-              { backgroundColor: attendanceStatus.isCheckedIn ? colors.error : colors.success }
+              {
+                backgroundColor: attendanceStatus.isCheckedIn
+                  ? colors.error
+                  : colors.success,
+              },
             ]}
             onPress={handleAttendanceAction}
           >
@@ -294,7 +292,7 @@ const AttendanceScreen = () => {
         {/* Leave Management Section */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Leave Management</Text>
-          
+
           {/* Apply for Leave Button */}
           <TouchableOpacity
             style={styles.leaveButton}
@@ -307,33 +305,35 @@ const AttendanceScreen = () => {
         {/* Leave History Section */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Leave History</Text>
-          
+
           {leaveHistory.length > 0 ? (
-            leaveHistory.map((leave) => (
+            leaveHistory.map(leave => (
               <View key={leave.id} style={styles.leaveItem}>
                 <View style={styles.leaveHeader}>
                   <Text style={styles.leaveType}>{leave.type}</Text>
-                  <View style={[
-                    styles.leaveStatus,
-                    { backgroundColor: `${getStatusColor(leave.status)}20` }
-                  ]}>
-                    <Text style={[
-                      styles.leaveStatusText,
-                      { color: getStatusColor(leave.status) }
-                    ]}>
+                  <View
+                    style={[
+                      styles.leaveStatus,
+                      { backgroundColor: `${getStatusColor(leave.status)}20` },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.leaveStatusText,
+                        { color: getStatusColor(leave.status) },
+                      ]}
+                    >
                       {getStatusText(leave.status)}
                     </Text>
                   </View>
                 </View>
-                
+
                 <Text style={styles.leaveDates}>
                   📅 {leave.startDate} to {leave.endDate}
                 </Text>
-                
-                <Text style={styles.leaveReason}>
-                  💭 {leave.reason}
-                </Text>
-                
+
+                <Text style={styles.leaveReason}>💭 {leave.reason}</Text>
+
                 <Text style={styles.leaveAppliedDate}>
                   Applied on: {leave.appliedDate}
                 </Text>
@@ -347,8 +347,8 @@ const AttendanceScreen = () => {
             </View>
           )}
         </View>
-      </ScrollView>
-    </View>
+      </View>
+    </ScrollView>
   );
 };
 
@@ -359,10 +359,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    paddingHorizontal: 16,
   },
   header: {
     backgroundColor: colors.primary,
-    paddingTop: 30,
+    paddingTop: 20,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
@@ -378,7 +379,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    paddingHorizontal: 16,
   },
   dateCard: {
     backgroundColor: colors.surface,

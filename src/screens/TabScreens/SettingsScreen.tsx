@@ -24,7 +24,7 @@ import {
 } from 'react-native';
 import { AuthContext } from '../../context/authContext';
 import { theme } from '../../config/theme';
-
+import Toast from 'react-native-toast-message'
 // Extract colors and other theme values for easier access
 const { colors, typography, spacing, borderRadius, shadows, commonStyles } = theme;
 
@@ -59,14 +59,14 @@ const SettingsScreen = () => {
   
   // Sample user profile - in real app this would come from API
   const [userProfile] = useState<UserProfile>({
-    firstName: userInfo?.fname || 'User',
-    lastName: userInfo?.lname || 'Doe',
-    email: userInfo?.email || 'john.doe@company.com',
+    firstName: userInfo?.fname,
+    lastName: userInfo?.lname,
+    email: userInfo?.email,
     role: 'Software Developer',
     department: 'Engineering',
     employeeId: 'EMP001',
     joinDate: 'January 15, 2023',
-    phone: userInfo?.fname || '+1 (555) 123-4567',
+    phone: '+91 9xxxxxx323',
   });
 
   // App preferences state
@@ -92,44 +92,56 @@ const SettingsScreen = () => {
    * Handle edit profile
    */
   const handleEditProfile = () => {
-    Alert.alert(
-      'Edit Profile',
-      'Profile editing form will be implemented in the next iteration.',
-      [{ text: 'OK' }]
-    );
+    Toast.show({
+              type: 'success',
+              text1: 'Edit Profile',
+              text2: 'Feature coming soon',
+              position: 'top',
+              visibilityTime: 1000,
+              topOffset: 105,
+            });
   };
 
   /**
    * Handle change password
    */
   const handleChangePassword = () => {
-    Alert.alert(
-      'Change Password',
-      'Password change form will be implemented in the next iteration.',
-      [{ text: 'OK' }]
-    );
+    Toast.show({
+              type: 'success',
+              text1: 'Change Password',
+              text2: 'Feature coming soon',
+              position: 'top',
+              visibilityTime: 1000,
+              topOffset: 105,
+            });
   };
 
   /**
    * Handle notification settings
    */
   const handleNotificationSettings = () => {
-    Alert.alert(
-      'Notification Settings',
-      'Detailed notification preferences will be implemented in the next iteration.',
-      [{ text: 'OK' }]
-    );
+    Toast.show({
+              type: 'success',
+              text1: 'Notification Settings',
+              text2: 'Feature coming soon',
+              position: 'top',
+              visibilityTime: 1000,
+              topOffset: 105,
+            });
   };
 
   /**
    * Handle privacy settings
    */
   const handlePrivacySettings = () => {
-    Alert.alert(
-      'Privacy Settings',
-      'Privacy and security settings will be implemented in the next iteration.',
-      [{ text: 'OK' }]
-    );
+    Toast.show({
+              type: 'success',
+              text1: 'Privacy Settings',
+              text2: 'Feature coming soon',
+              position: 'top',
+              visibilityTime: 1000,
+              topOffset: 105,
+            });
   };
 
   /**

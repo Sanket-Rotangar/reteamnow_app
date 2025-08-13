@@ -20,6 +20,7 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
+      console.log('Logging in...');
       await login(email, password);
       console.log('Login successful'); 
     } catch (err: any) {
