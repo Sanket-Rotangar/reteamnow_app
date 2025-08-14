@@ -7,9 +7,9 @@ import {
   Button,
   StyleSheet,
   TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import { AuthContext } from '../../context/authContext';
-
 
 const RegisterScreen = ({ navigation }) => {
   const [fname, setfname] = useState('');
@@ -23,7 +23,6 @@ const RegisterScreen = ({ navigation }) => {
   const { register } = useContext(AuthContext);
 
   const handleRegister = async () => {
-    
     if (password !== confirmPassword) {
       console.warn('Passwords do not match!');
       return;
@@ -39,64 +38,66 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
+    <SafeAreaView style={styles.container}>
+      <View>
+        <Text style={styles.title}>Register</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="fname"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        onChangeText={setfname}
-        value={fname}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="lname"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        onChangeText={setlname}
-        value={lname}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="username"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        onChangeText={setusername}
-        value={username}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        onChangeText={setEmail}
-        value={email}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="fname"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          onChangeText={setfname}
+          value={fname}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="lname"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          onChangeText={setlname}
+          value={lname}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="username"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          onChangeText={setusername}
+          value={username}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          onChangeText={setEmail}
+          value={email}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        onChangeText={setPassword}
-        value={password}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          secureTextEntry
+          onChangeText={setPassword}
+          value={password}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        secureTextEntry
-        onChangeText={setConfirmPassword}
-        value={confirmPassword}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm Password"
+          secureTextEntry
+          onChangeText={setConfirmPassword}
+          value={confirmPassword}
+        />
 
-      <Button title="Register" onPress={handleRegister} />
+        <Button title="Register" onPress={handleRegister} />
 
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.switchText}>Already have an account? Login</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.switchText}>Already have an account? Login</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 

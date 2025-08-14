@@ -20,24 +20,24 @@ import AttendanceScreen from '../screens/TabScreens/AttendanceScreen';
 import FunZoneScreen from '../screens/TabScreens/FunZoneScreen';
 import SettingsStack from '../navigation/SettingsStack';
 import GoogleFit from '../screens/TabScreens/GoogleFit';
-
+import colors from '../config/colors'
 const Tab = createBottomTabNavigator();
 
 /**
  * Modern Color Palette for the app
  */
-const colors = {
-  primary: '#6366F1',      // Indigo - main brand color
-  secondary: '#EC4899',    // Pink - accent color
-  success: '#10B981',      // Green - success states
-  warning: '#F59E0B',      // Amber - warning states
-  background: '#F8FAFC',   // Light gray - background
-  surface: '#FFFFFF',      // White - cards and surfaces
-  text: '#1F2937',         // Dark gray - primary text
-  textSecondary: '#6B7280', // Medium gray - secondary text
-  border: '#E5E7EB',       // Light gray - borders
-  inactive: '#9CA3AF',     // Gray - inactive elements
-};
+// const colors = {
+//   primary: '#6366F1',      // Indigo - main brand color
+//   secondary: '#EC4899',    // Pink - accent color
+//   success: '#10B981',      // Green - success states
+//   warning: '#F59E0B',      // Amber - warning states
+//   background: '#F8FAFC',   // Light gray - background
+//   surface: '#FFFFFF',      // White - cards and surfaces
+//   text: '#1F2937',         // Dark gray - primary text
+//   textSecondary: '#6B7280', // Medium gray - secondary text
+//   border: '#E5E7EB',       // Light gray - borders
+//   inactive: '#9CA3AF',     // Gray - inactive elements
+// };
 
 /**
  * Custom Tab Icon Component

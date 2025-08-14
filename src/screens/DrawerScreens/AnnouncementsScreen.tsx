@@ -113,7 +113,7 @@ const AnnouncementsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
+      <StatusBar backgroundColor={colors.text} barStyle="light-content" />
       
       {/* Header Section */}
       <View style={styles.header}>

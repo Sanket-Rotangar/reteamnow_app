@@ -21,23 +21,8 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
+import colors from '../../config/colors'
 
-/**
- * Modern Color Palette
- */
-const colors = {
-  primary: '#6366F1',
-  secondary: '#EC4899',
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  background: '#F8FAFC',
-  surface: '#FFFFFF',
-  text: '#1F2937',
-  textSecondary: '#6B7280',
-  border: '#E5E7EB',
-  accent: '#F3F4F6',
-};
 
 /**
  * Interface for admin stats
@@ -151,7 +136,7 @@ const AdminPanelScreen = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
+      <StatusBar backgroundColor={colors.text} barStyle="light-content" />
       
       {/* Header Section */}
       <View style={styles.header}>

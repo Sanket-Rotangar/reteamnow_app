@@ -172,7 +172,6 @@ const GoogleFit: React.FC = () => {
   }
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -340,8 +339,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   header: {
     flexDirection: 'row',

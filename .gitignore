@@ -37,6 +37,7 @@ local.properties
 
 # node.js
 #
+reteamnow-backend/
 node_modules/
 CHANGELOG.md
 requirements.md

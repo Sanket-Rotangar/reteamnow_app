@@ -4,8 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const checkInUser = async () => {
   try {
-    const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo') || '{}');
-    
+    const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'));
     const res = await axios.post(`${API_BASE_URL}/attendance/checkin`, {
       employee: userInfo.id,
       workType: 'remote',

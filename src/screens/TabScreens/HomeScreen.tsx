@@ -1,103 +1,43 @@
 /**
- * Home Screen Component - Central Dashboard
+ * Revised Home Screen Component - Central Dashboard
  *
- * This screen implements the Dashboard module as per requirements:
- * - Central hub for quick access to Attendance and Announcements
- * - Drawer button and greeting section
- * - Modern UI with card-based layout
- * - Quick actions and highlights
- *
- * Features modern dashboard design with employee engagement elements
+ * This screen has been updated to be more interactive and visually
+ * appealing, addressing the spacing issue and improving the overall layout.
+ * It uses a combination of PagerView for swipeable cards and a grid
+ * for quick actions to create a modern, engaging user experience.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
+  SafeAreaView,
   ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Image,
   TouchableOpacity,
-  StatusBar,
-  RefreshControl,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import colors from '../../config/colors';
-import { AuthContext } from '../../context/authContext';
-// import Toast from 'react-native-toast-message';
-/**
- * Interface for dashboard stats
- */
-interface DashboardStats {
-  attendanceStatus: 'checked-in' | 'checked-out';
-  todayHours: string;
-  unreadAnnouncements: number;
-  leaveBalance: number;
-}
+import PagerView from 'react-native-pager-view';
+import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/Ionicons';
+// import { useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
+import ProgressRings from '../../components/ProgressRings';
+
+// A simple data structure for the swipeable cards
+const cardsData = [
+  { id: '1', type: 'routes', title: 'My Routes' },
+  { id: '2', type: 'attendance', title: 'Attendance Status' },
+  { id: '3', type: 'leaderboard', title: 'Leaderboard' },
+];
 
 const HomeScreen = () => {
-  const { userInfo } = React.useContext(AuthContext);
-  const navigation = useNavigation();
-  const [refreshing, setRefreshing] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [activeTab, setActiveTab] = useState('All routes');
+  const [pagerIndex, setPagerIndex] = useState(0);
+  // const navigation = useNavigation();
 
-  // Sample dashboard data - in real app this would come from API
-  const [dashboardStats] = useState<DashboardStats>({
-    attendanceStatus: 'checked-out',
-    todayHours: '0h 0m',
-    unreadAnnouncements: 3,
-    leaveBalance: 12,
-  });
-
-  /**
-   * Update current time every minute
-   */
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000); // Update every minute
-
-    return () => clearInterval(timer);
-  }, []);
-
-  /**
-   * Get greeting based on time of day
-   */
-  const getGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  };
-
-  /**
-   * Get user name from token (in real app, this would come from user profile)
-   */
-  const getUserName = () => {
-    const fullname = userInfo?.fname + ' ' + userInfo?.lname;
-    if (userInfo) return fullname.toUpperCase();
-    return 'User';
-  };
-
-  /**
-   * Handle refresh action
-   */
-  const onRefresh = async () => {
-    setRefreshing(true);
-    // Simulate API call to refresh dashboard data
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setRefreshing(false);
-  };
-
-  /**
-   * Handle opening drawer
-   */
-  const handleOpenDrawer = () => {
-    (navigation as any).openDrawer?.();
-  };
-
-  /**
-   * Format current date
-   */
+  const currentTime = new Date();
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -108,230 +48,441 @@ const HomeScreen = () => {
   };
 
   /**
-   * Format current time
+   * Function to render the different swipeable cards based on their type.
+   * Each card is now a TouchableOpacity to enable interaction.
    */
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const renderCard = (cardType: string) => {
+    switch (cardType) {
+      case 'routes':
+        return (
+          <View style={styles.cardWrapper}>
+            <LinearGradient
+              colors={['#8E2DE2', '#4A00E0']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.cardContainer}
+            >
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>My Routes</Text>
+                <View style={styles.cardHeaderIcons}>
+                  <Icon
+                    name="stats-chart-outline"
+                    size={18}
+                    color="#fff"
+                    style={{ marginRight: 10 }}
+                  />
+                  <Icon name="pencil-outline" size={18} color="#fff" />
+                </View>
+              </View>
+              <View style={styles.cardBody}>
+                <View style={styles.cardSection}>
+                  <Text style={styles.cardSectionTitle}>Distance</Text>
+                  <Text style={styles.cardValue}>8,920 km</Text>
+                </View>
+                <View style={styles.cardSection}>
+                  <Text style={styles.cardSectionTitle}>Location</Text>
+                  <Text style={styles.cardValue}>356</Text>
+                </View>
+              </View>
+              <View style={styles.cardFooter}>
+                <View style={styles.cardFooterItem}>
+                  <Icon name="walk-outline" size={16} color="#fff" />
+                  <Text style={styles.cardFooterText}>224</Text>
+                </View>
+                <View style={styles.cardFooterItem}>
+                  <Icon name="bicycle-outline" size={16} color="#fff" />
+                  <Text style={styles.cardFooterText}>80</Text>
+                </View>
+                <View style={styles.cardFooterItem}>
+                  <Icon name="car-outline" size={16} color="#fff" />
+                  <Text style={styles.cardFooterText}>26</Text>
+                </View>
+                <View style={styles.cardFooterItem}>
+                  <Icon name="flag-outline" size={16} color="#fff" />
+                  <Text style={styles.cardFooterText}>26</Text>
+                </View>
+              </View>
+            </LinearGradient>
+          </View>
+        );
+      case 'attendance':
+        return (
+          <View style={styles.cardWrapper}>
+            <LinearGradient
+              colors={['#FF6B6B', '#EE9F9F']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.cardContainer}
+            >
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Attendance Status</Text>
+                <Icon name="calendar-outline" size={20} color="#fff" />
+              </View>
+              <View style={styles.cardBody}>
+                <Text style={styles.attendanceText}>Present Today</Text>
+                <Text style={styles.attendanceTime}>10:00 AM</Text>
+              </View>
+              <View style={styles.cardFooter}>
+                <Text style={styles.cardFooterText}>
+                  Total days present: 25/30
+                </Text>
+              </View>
+            </LinearGradient>
+          </View>
+        );
+      case 'leaderboard':
+        return (
+          <View style={styles.cardWrapper}>
+            <LinearGradient
+              colors={['#20BDFF', '#A5FECB']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.cardContainer}
+            >
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Leaderboard</Text>
+                <Icon name="trophy-outline" size={20} color="#fff" />
+              </View>
+              <View style={styles.cardBody}>
+                <Text style={styles.leaderboardText}>You are currently</Text>
+                <Text style={styles.leaderboardRank}>#5</Text>
+              </View>
+              <View style={styles.cardFooter}>
+                <Text style={styles.cardFooterText}>View full leaderboard</Text>
+              </View>
+            </LinearGradient>
+          </View>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
-
-      {/* Header Section with Drawer Button and Greeting */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          {/* Drawer Button */}
-          <TouchableOpacity
-            style={styles.drawerButton}
-            onPress={handleOpenDrawer}
-          >
-            <Text style={styles.drawerIcon}>☰</Text>
-          </TouchableOpacity>
-            {/* <Text style={styles.currentTime}>Reteam Now</Text> */}
-          {/* Current Time */}
-          <Text style={styles.currentTime}>{formatTime(currentTime)}</Text>
-        </View>
-
-        {/* Greeting Section */}
-        <View style={styles.greetingSection}>
-          <Text style={styles.greeting}>{getGreeting()},</Text>
-          <Text style={styles.userName}>{getUserName()}! 👋</Text>
-          <Text style={styles.currentDate}>{formatDate(currentTime)}</Text>
-        </View>
-      </View>
-
-      <ScrollView
-        style={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-
-        
-        {/* Today's Summary */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📊 Today's Summary</Text>
-
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryRow}>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Attendance Status</Text>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    {
-                      backgroundColor:
-                        dashboardStats.attendanceStatus === 'checked-in'
-                          ? colors.success
-                          : colors.warning,
-                    },
-                  ]}
-                >
-                  <Text style={styles.statusText}>
-                    {dashboardStats.attendanceStatus === 'checked-in'
-                      ? 'Checked In'
-                      : 'Not Checked In'}
-                  </Text>
-                </View>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.container}>
+          {/* Header Section */}
+          <View style={styles.header}>
+            <View style={styles.profileInfo}>
+              <Image
+                source={{
+                  uri: 'https://img.freepik.com/premium-photo/profile-icon-white-background_941097-162649.jpg',
+                }}
+                style={styles.profileImage}
+              />
+              <View>
+                <Text style={styles.greetingText}>Welcome back</Text>
+                <Text style={styles.userName}>John Vane</Text>
+                <Text style={styles.currentDate}>
+                  {formatDate(currentTime)}
+                </Text>
               </View>
             </View>
-
-            <View style={styles.summaryRow}>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Hours Today</Text>
-                <Text style={styles.summaryValue}>
-                  {dashboardStats.todayHours}
-                </Text>
-              </View>
-
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Leave Balance</Text>
-                <Text style={styles.summaryValue}>
-                  {dashboardStats.leaveBalance} days
-                </Text>
-              </View>
+            <View>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() =>
+                  Toast.show({
+                    type: 'info',
+                    text1: 'Notifications',
+                    text2: 'You have new notifications',
+                  })
+                }
+              >
+                <Icon name="notifications-outline" size={24} color="#000" />
+              </TouchableOpacity>
             </View>
           </View>
-        </View>
 
-        {/* Highlights Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>✨ Highlights</Text>
-
-          <TouchableOpacity
-            style={styles.highlightCard}
-            onPress={() => navigation.navigate('Announcements' as never)}
+          {/* Swipeable Card Section */}
+          <Text style={styles.sectionTitle}>Quick Insights</Text>
+          <PagerView
+            style={styles.pagerView}
+            initialPage={pagerIndex}
+            onPageSelected={e => setPagerIndex(e.nativeEvent.position)}
           >
-            <View style={styles.highlightHeader}>
-              <Text style={styles.highlightIcon}>📢</Text>
-              <View style={styles.highlightContent}>
-                <Text style={styles.highlightTitle}>New Announcements</Text>
-                <Text style={styles.highlightDescription}>
-                  You have {dashboardStats.unreadAnnouncements} unread
-                  announcements
-                </Text>
-              </View>
-              <View style={styles.notificationBadge}>
-                <Text style={styles.notificationText}>
-                  {dashboardStats.unreadAnnouncements}
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
+            {cardsData.map(card => (
+              <View key={card.id}>{renderCard(card.type)}</View>
+            ))}
+          </PagerView>
 
-          <TouchableOpacity style={styles.highlightCard}>
-            <View style={styles.highlightHeader}>
-              <Text style={styles.highlightIcon}>�</Text>
-              <View style={styles.highlightContent}>
-                <Text style={styles.highlightTitle}>Leaderboard</Text>
-                <Text style={styles.highlightDescription}>
-                  Check your ranking and achievements
-                </Text>
-              </View>
-              <Text style={styles.highlightArrow}>›</Text>
+          {/* Pagination dots for the swipeable cards */}
+          <View style={styles.paginationContainer}>
+            {cardsData.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.paginationDot,
+                  {
+                    backgroundColor:
+                      pagerIndex === index ? '#4A00E0' : '#E0E0E0',
+                  },
+                ]}
+              />
+            ))}
+          </View>
+
+          {/* Quick Actions Section */}
+          <View style={styles.quickActionsContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Quick Actions</Text>
+              <TouchableOpacity onPress={() => console.log('View all actions')}>
+                <Text style={styles.viewAllText}>View All ›</Text>
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
+            <View style={styles.quickActionsGrid}>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={() => console.log('Check-in/out')}
+              >
+                <Icon name="timer-outline" size={30} color="#fff" />
+                <Text style={styles.quickActionText}>Check In/Out</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={() => console.log('View Announcements')}
+              >
+                <Icon name="megaphone-outline" size={30} color="#fff" />
+                <Text style={styles.quickActionText}>Announcements</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={() => console.log('Request Leave')}
+              >
+                <Icon name="calendar-outline" size={30} color="#fff" />
+                <Text style={styles.quickActionText}>Request Leave</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={() => console.log('View Dashboard')}
+              >
+                <Icon name="bar-chart-outline" size={30} color="#fff" />
+                <Text style={styles.quickActionText}>Dashboard</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Route Filters */}
+          <View style={styles.filterContainer}>
+            {['All routes', 'In planning', 'Completed'].map(tab => (
+              <TouchableOpacity
+                key={tab}
+                style={[
+                  styles.filterButton,
+                  activeTab === tab && styles.activeFilterButton,
+                ]}
+                onPress={() => setActiveTab(tab)}
+              >
+                <Text
+                  style={[
+                    styles.filterText,
+                    activeTab === tab && styles.activeFilterText,
+                  ]}
+                >
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* This space can be used for a list of routes or other dynamic content */}
+          <View style={styles.emptyContentCard}>
+            <Text style={styles.emptyContentText}>
+              Content based on filter will appear here...
+
+            </Text>
+                <ProgressRings move={350} exercise={520} stand={20} />
+          </View>
         </View>
-
-        {/* Welcome Message
-        <View style={styles.welcomeCard}>
-          <Text style={styles.welcomeTitle}>🎉 Welcome to Employee Hub!</Text>
-          <Text style={styles.welcomeText}>
-            Your central place for attendance, announcements, team activities,
-            and more. Stay connected with your colleagues and never miss
-            important updates.
-          </Text>
-        </View> */}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
-/**
- * Styles for the Home Dashboard screen
- */
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F4F6FA',
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    paddingHorizontal: 18,
+    paddingTop: 15,
   },
   header: {
-    backgroundColor: colors.primary,
-    paddingTop: 20,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
-  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 25,
   },
-  drawerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: `${colors.surface}20`,
-    justifyContent: 'center',
+  profileInfo: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  drawerIcon: {
-    fontSize: 18,
-    color: colors.surface,
-    fontWeight: 'bold',
+  profileImage: {
+    width: 55,
+    height: 55,
+    borderRadius: 27.5,
+    marginRight: 15,
+    borderWidth: 2,
+    borderColor: '#fff',
+    elevation: 4,
   },
-  currentTime: {
-    fontSize: 16,
-    color: colors.surface,
-    fontWeight: '600',
-  },
-  greetingSection: {
-    alignItems: 'flex-start',
-  },
-  greeting: {
-    fontSize: 16,
-    color: `${colors.surface}CC`,
+  greetingText: {
+    fontSize: 14,
+    color: '#6B7280',
+    letterSpacing: 0.3,
   },
   userName: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.surface,
-    marginBottom: 4,
+    fontWeight: '700',
+    color: '#111827',
   },
   currentDate: {
-    fontSize: 14,
-    color: `${colors.surface}99`,
+    fontSize: 13,
+    color: '#9CA3AF',
+    marginTop: 2,
   },
-  scrollContainer: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  section: {
-    marginTop: 20,
+  iconButton: {
+    padding: 10,
+    borderRadius: 50,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
     marginBottom: 12,
+  },
+  pagerView: {
+    height: 200,
+    marginBottom: 10,
+    marginHorizontal: -12,
+  },
+  cardWrapper: {
+    flex: 1,
+    paddingHorizontal: 5,
+  },
+  cardContainer: {
+    flex: 1,
+    padding: 20,
+    borderRadius: 20,
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  cardHeaderIcons: {
+    flexDirection: 'row',
+  },
+  cardBody: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 10,
+  },
+  cardSection: {
+    flex: 1,
+  },
+  cardSectionTitle: {
+    fontSize: 12,
+    color: '#fff',
+    opacity: 0.8,
+  },
+  cardValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  cardFooterItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  cardFooterText: {
+    fontSize: 14,
+    color: '#fff',
+    marginLeft: 4,
+  },
+  attendanceText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  attendanceTime: {
+    fontSize: 16,
+    color: '#fff',
+    opacity: 0.8,
+  },
+  leaderboardText: {
+    fontSize: 20,
+    color: '#fff',
+  },
+  leaderboardRank: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  viewAllText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  quickActionsContainer: {
+    marginTop: 10,
+    marginBottom: 20,
   },
   quickActionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -6,
+    justifyContent: 'space-between',
   },
   quickActionCard: {
     backgroundColor: colors.surface,
-    width: '47%',
-    marginHorizontal: '1.5%',
-    marginBottom: 12,
-    padding: 16,
-    borderRadius: 12,
+    width: '48%',
+    height: 100,
+    marginBottom: 15,
+    borderRadius: 15,
+    justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -339,132 +490,53 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  quickActionIcon: {
-    fontSize: 28,
-    marginBottom: 8,
-  },
-  quickActionTitle: {
+  quickActionText: {
+    color: colors.text,
     fontSize: 14,
     fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 2,
+    marginTop: 5,
   },
-  quickActionSubtitle: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  summaryCard: {
-    backgroundColor: colors.surface,
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  summaryRow: {
+  filterContainer: {
     flexDirection: 'row',
-    marginBottom: 12,
-  },
-  summaryItem: {
-    flex: 1,
-    marginRight: 8,
-  },
-  summaryLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginBottom: 4,
-  },
-  summaryValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.text,
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    alignSelf: 'flex-start',
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.surface,
-  },
-  highlightCard: {
-    backgroundColor: colors.surface,
-    marginBottom: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  highlightHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-  },
-  highlightIcon: {
-    fontSize: 24,
-    marginRight: 16,
-  },
-  highlightContent: {
-    flex: 1,
-  },
-  highlightTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 2,
-  },
-  highlightDescription: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    lineHeight: 16,
-  },
-  highlightArrow: {
-    fontSize: 20,
-    color: colors.textSecondary,
-    marginLeft: 8,
-  },
-  notificationBadge: {
-    backgroundColor: colors.secondary,
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    marginLeft: 8,
-  },
-  notificationText: {
-    color: colors.surface,
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  welcomeCard: {
-    backgroundColor: colors.surface,
-    margin: 0,
+    justifyContent: 'space-between',
     marginBottom: 20,
-    padding: 20,
+    backgroundColor: '#EAEAEA',
+    borderRadius: 15,
+    padding: 5,
+  },
+  filterButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
     borderRadius: 12,
+  },
+  activeFilterButton: {
+    backgroundColor: '#fff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
     elevation: 3,
   },
-  welcomeTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  welcomeText: {
+  filterText: {
     fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20,
+    color: '#888',
+  },
+  activeFilterText: {
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  emptyContentCard: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 150,
+  },
+  emptyContentText: {
+    color: '#888',
+    fontSize: 16,
   },
 });
 

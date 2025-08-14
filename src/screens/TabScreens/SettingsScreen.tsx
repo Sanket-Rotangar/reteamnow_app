@@ -17,7 +17,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  StatusBar,
   RefreshControl,
   Alert,
   Switch,
@@ -25,6 +24,7 @@ import {
 import { AuthContext } from '../../context/authContext';
 import { theme } from '../../config/theme';
 import Toast from 'react-native-toast-message'
+import { SafeAreaView } from 'react-native-safe-area-context';
 // Extract colors and other theme values for easier access
 const { colors, typography, spacing, borderRadius, shadows, commonStyles } = theme;
 
@@ -199,9 +199,8 @@ const SettingsScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
-      
+    <SafeAreaView style={styles.container}>
+    <ScrollView>
       {/* Header Section */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile & Settings</Text>
@@ -429,7 +428,8 @@ const SettingsScreen = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </ScrollView>
+    </SafeAreaView>
   );
 };
 

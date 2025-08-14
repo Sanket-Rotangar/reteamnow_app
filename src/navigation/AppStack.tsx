@@ -20,6 +20,7 @@ import { Text, StyleSheet } from 'react-native';
 import BottomTabs from './BottomTabs';
 
 // Import drawer screens
+import HomeScreen from '../screens/TabScreens/HomeScreen';
 import AnnouncementsScreen from '../screens/DrawerScreens/AnnouncementsScreen';
 
 // Import context
@@ -37,7 +38,7 @@ const AppStack = () => {
 
   // Check if user is admin (in real app, this would come from user data)
   // For demo purposes, we'll assume admin if token contains 'admin'
-  const isAdmin = userToken?.includes('admin') || false;
+  const isAdmin = userToken?.includes('admin') || true;
 
   return (
     <Drawer.Navigator
@@ -69,6 +70,16 @@ const AppStack = () => {
         }}
       />
 
+      {/* Test Screen */}
+      <Drawer.Screen
+        name="Test"
+        component={HomeScreen}
+        options={{
+          drawerLabel: 'Test',
+          title: 'Test',
+          drawerIcon: AnnouncementsIcon,
+        }}
+      />
       {/* Announcements Screen */}
       <Drawer.Screen
         name="Announcements"

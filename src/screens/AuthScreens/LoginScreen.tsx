@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 
 import { AuthContext } from '../../context/authContext.tsx';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -22,39 +23,41 @@ const LoginScreen = ({ navigation }) => {
     try {
       console.log('Logging in...');
       await login(email, password);
-      console.log('Login successful'); 
+      console.log('Login successful');
     } catch (err: any) {
       console.warn(err.response?.data?.message || 'Login failed');
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+    <SafeAreaView style={styles.container}>
+      <View>
+        <Text style={styles.title}>Login</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        onChangeText={setEmail}
-        value={email}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          onChangeText={setEmail}
+          value={email}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        onChangeText={setPassword}
-        value={password}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          secureTextEntry
+          onChangeText={setPassword}
+          value={password}
+        />
 
-      <Button title="Login" onPress={handleLogin} />
+        <Button title="Login" onPress={handleLogin} />
 
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.switchText}>Don't have an account? Register</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.switchText}>Don't have an account? Register</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
