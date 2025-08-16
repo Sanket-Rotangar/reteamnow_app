@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { onboardingUtils } from '../screens/OnboardingScreens/utils/onboardingUtils';
 import LoginScreen from '../screens/AuthScreens/LoginScreen';
 import RegisterScreen from '../screens/AuthScreens/RegisterScreen';
+import RegisterStep2Screen from '../screens/AuthScreens/RegisterStep2Screen';
 import OnboardingScreen from '../screens/OnboardingScreens/OnboardingScreen';
 
 const Stack = createNativeStackNavigator();
@@ -41,6 +42,7 @@ const AuthStack = () => {
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="RegisterStep2Screen" component={RegisterStep2Screen} />
     </Stack.Navigator>
   );
 };

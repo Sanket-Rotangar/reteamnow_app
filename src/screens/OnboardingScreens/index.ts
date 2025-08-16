@@ -1,5 +1,5 @@
 export { default as OnboardingScreen } from './OnboardingScreen';
-export { default as WelcomeScreen } from './WelcomeScreen';
-export { default as FitnessScreen } from './FitnessScreen';
-export { default as FunZoneScreen } from './FunZoneScreen';
-export { default as PrivacyScreen } from './PrivacyScreen';
+export { default as WelcomeScreen } from './screens/WelcomeScreen';
+export { default as FeaturesScreen } from './screens/FeaturesScreen';
+export { default as FitnessScreen } from './screens/FitnessScreen';
+export { default as PrivacyScreen } from './screens/PrivacyScreen';

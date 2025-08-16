@@ -12,10 +12,10 @@ import {
 import { colors } from '../../config/colors';
 import { fontSizes, fontWeights } from '../../config/typography';
 import { onboardingUtils } from './utils/onboardingUtils';
-import WelcomeScreen from './WelcomeScreen';
-import FitnessScreen from './FitnessScreen';
-import FunZoneScreen from './FunZoneScreen';
-import PrivacyScreen from './PrivacyScreen';
+import WelcomeScreen from './screens/WelcomeScreen';
+import FeaturesScreen from './screens/FeaturesScreen';
+import FitnessScreen from './screens/FitnessScreen';
+import PrivacyScreen from './screens/PrivacyScreen';
 
 const { width } = Dimensions.get('window');
 
@@ -26,23 +26,39 @@ interface OnboardingScreenProps {
 const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollX = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const screens = [
     { id: 1, component: WelcomeScreen },
-    { id: 2, component: FitnessScreen },
-    { id: 3, component: FunZoneScreen },
+    { id: 2, component: FeaturesScreen },
+    { id: 3, component: FitnessScreen },
     { id: 4, component: PrivacyScreen },
   ];
 
   const handleNext = () => {
     if (currentIndex < screens.length - 1) {
       const nextIndex = currentIndex + 1;
+      
+      // Smooth fade transition
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scrollX, {
+          toValue: nextIndex * width,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+      
       setCurrentIndex(nextIndex);
-      Animated.timing(scrollX, {
-        toValue: nextIndex * width,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
     } else {
       handleGetStarted();
     }
@@ -60,33 +76,59 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
 
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (evt, gestureState) => {
-      return Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+      return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 10;
+    },
+    onPanResponderGrant: () => {
+      scrollX.stopAnimation();
+      fadeAnim.stopAnimation();
     },
     onPanResponderMove: (evt, gestureState) => {
-      const newValue = currentIndex * width - gestureState.dx;
-      scrollX.setValue(newValue);
+      // Create smooth fade effect during swipe
+      const progress = Math.abs(gestureState.dx) / (width * 0.3);
+      const opacity = Math.max(0.3, 1 - Math.min(progress, 0.7));
+      fadeAnim.setValue(opacity);
     },
     onPanResponderRelease: (evt, gestureState) => {
-      const threshold = width * 0.3;
+      const threshold = width * 0.2;
       
       if (gestureState.dx > threshold && currentIndex > 0) {
         // Swipe right - go to previous
         const prevIndex = currentIndex - 1;
+        Animated.sequence([
+          Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 100,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+        ]).start();
         setCurrentIndex(prevIndex);
-        Animated.timing(scrollX, {
-          toValue: prevIndex * width,
-          duration: 200,
-          useNativeDriver: false,
-        }).start();
       } else if (gestureState.dx < -threshold && currentIndex < screens.length - 1) {
         // Swipe left - go to next
-        handleNext();
+        const nextIndex = currentIndex + 1;
+        Animated.sequence([
+          Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 100,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+        ]).start();
+        setCurrentIndex(nextIndex);
       } else {
-        // Snap back to current
-        Animated.timing(scrollX, {
-          toValue: currentIndex * width,
-          duration: 200,
-          useNativeDriver: false,
+        // Snap back to full opacity
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
         }).start();
       }
     },
@@ -96,34 +138,17 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
     return (
       <View style={styles.dotsContainer}>
         {screens.map((_, index) => {
-          const opacity = scrollX.interpolate({
-            inputRange: [
-              (index - 1) * width,
-              index * width,
-              (index + 1) * width,
-            ],
-            outputRange: [0.3, 1, 0.3],
-            extrapolate: 'clamp',
-          });
-
-          const scale = scrollX.interpolate({
-            inputRange: [
-              (index - 1) * width,
-              index * width,
-              (index + 1) * width,
-            ],
-            outputRange: [0.8, 1.2, 0.8],
-            extrapolate: 'clamp',
-          });
-
+          const isActive = index === currentIndex;
+          
           return (
-            <Animated.View
+            <View
               key={index}
               style={[
                 styles.dot,
+                isActive && styles.activeDot,
+                !isActive && styles.inactiveDot,
                 {
-                  opacity,
-                  transform: [{ scale }],
+                  transform: [{ scale: isActive ? 1.2 : 0.8 }],
                 },
               ]}
             />
@@ -137,43 +162,58 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       
       <View style={styles.screenContainer} {...panResponder.panHandlers}>
         <Animated.View
           style={[
             styles.screensWrapper,
             {
-              transform: [
-                {
-                  translateX: scrollX.interpolate({
-                    inputRange: [0, width * (screens.length - 1)],
-                    outputRange: [0, -width * (screens.length - 1)],
-                    extrapolate: 'clamp',
-                  }),
-                },
-              ],
+              opacity: fadeAnim,
             },
           ]}
         >
-          {screens.map((screen, _index) => (
-            <View key={screen.id} style={styles.screen}>
-              <screen.component />
-            </View>
-          ))}
+          <View key={screens[currentIndex].id} style={styles.screen}>
+            {React.createElement(screens[currentIndex].component)}
+          </View>
         </Animated.View>
       </View>
 
-      {renderDots()}
+      {/* Skip Button - Top Right */}
+      {!isLastScreen && (
+        <View style={styles.skipButtonContainer}>
+          <TouchableOpacity
+            style={styles.skipButton}
+            onPress={handleGetStarted}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.skipText}>Skip</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-      <View style={styles.buttonContainer}>
+      {/* Floating Dots Indicator */}
+      <View style={styles.floatingDotsContainer}>
+        <View style={styles.dotsWrapper}>
+          {renderDots()}
+        </View>
+      </View>
+
+      {/* Floating Bottom Button */}
+      <View style={styles.floatingButtonContainer}>
         <TouchableOpacity
-          style={styles.nextButton}
+          style={[
+            styles.nextButton,
+            isLastScreen && styles.getStartedButton
+          ]}
           onPress={handleNext}
           activeOpacity={0.8}
         >
-          <Text style={styles.buttonText}>
-            {isLastScreen ? 'Get Started' : 'Next'}
+          <Text style={[
+            styles.buttonText,
+            isLastScreen && styles.getStartedText
+          ]}>
+            {isLastScreen ? '🚀 Get Started' : 'Next →'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -198,47 +238,122 @@ const styles = StyleSheet.create({
   screen: {
     width: width,
     height: '100%',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingBottom: 140, // Reduced space for floating elements
+  },
+  
+  // Skip Button Container - Top Right
+  skipButtonContainer: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    zIndex: 20,
+  },
+  skipButton: {
+    backgroundColor: `${colors.surface}E0`,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: colors.text,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: `${colors.border}40`,
+  },
+  skipText: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.md,
+    fontWeight: fontWeights.medium,
+  },
+  
+  // Floating Dots Container
+  floatingDotsContainer: {
+    position: 'absolute',
+    bottom: 5,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  dotsWrapper: {
+     backgroundColor: `${colors.surface}00`,
+    paddingHorizontal: 20,
+    paddingVertical: 5,
+    borderRadius: 25,
   },
   dotsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
   },
   dot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: 6,
     backgroundColor: colors.primary,
     marginHorizontal: 4,
   },
-  buttonContainer: {
-    paddingHorizontal: 40,
-    paddingBottom: 40,
-    paddingTop: 10,
+  activeDot: {
+    width: 12,
+    height: 8,
+    borderRadius: 6,
+    backgroundColor: colors.primary,
+    marginHorizontal: 4,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  inactiveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 6,
+    backgroundColor: `${colors.primary}40`,
+    marginHorizontal: 4,
+  },
+  
+  // Floating Button Container - No White Background
+  floatingButtonContainer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 20,
+    right: 20,
+    zIndex: 10,
   },
   nextButton: {
     backgroundColor: colors.primary,
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 32,
-    borderRadius: 12,
+    borderRadius: 18,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 15,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: `${colors.primary}30`,
+    minHeight: 56,
+  },
+  getStartedButton: {
+    backgroundColor: colors.success,
+    shadowColor: colors.success,
+    borderColor: `${colors.success}30`,
   },
   buttonText: {
     color: colors.surface,
     fontSize: fontSizes.lg,
     fontWeight: fontWeights.semiBold,
+    letterSpacing: 0.8,
+  },
+  getStartedText: {
+    fontSize: fontSizes.lg + 2,
+    fontWeight: fontWeights.bold,
   },
 });
 
