@@ -15,6 +15,7 @@ type ProgressRingsProps = {
   move: number;
   exercise: number;
   stand: number;
+  size?: number; // Optional size prop
 };
 
 // Local hook to generate animatedProps for a ring in a rules-of-hooks safe way
@@ -28,11 +29,11 @@ const useRingAnimatedProps = (
       circumference * interpolate(progressValue.value, [0, 1], [0, 1]),
   }));
 
-const ProgressRings: React.FC<ProgressRingsProps> = ({ move, exercise, stand }) => {
+const ProgressRings: React.FC<ProgressRingsProps> = ({ move, exercise, stand, size = 180 }) => {
   // Config
-  const size = 180; // overall SVG size
-  const strokeWidth = 15;
-  const center = size / 2;
+  const ringSize = size; // Use prop or default to 180
+  const strokeWidth = Math.max(10, size * 0.08); // Proportional stroke width
+  const center = ringSize / 2;
   const radius = center - strokeWidth;
   const circumference = 2 * Math.PI * radius;
 
@@ -70,7 +71,7 @@ const ProgressRings: React.FC<ProgressRingsProps> = ({ move, exercise, stand }) 
 
   return (
     <View style={styles.container}>
-      <Svg width={size} height={size}>
+      <Svg width={ringSize} height={ringSize}>
         <Defs>
           {/* Gradients for each ring */}
           <LinearGradient id="moveGradient" x1="0%" y1="0%" x2="100%" y2="0%">

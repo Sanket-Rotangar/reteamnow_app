@@ -1,10 +1,9 @@
 /**
- * Revised Home Screen Component - Central Dashboard
+ * Modern Home Screen - Professional Dashboard
  *
- * This screen has been updated to be more interactive and visually
- * appealing, addressing the spacing issue and improving the overall layout.
- * It uses a combination of PagerView for swipeable cards and a grid
- * for quick actions to create a modern, engaging user experience.
+ * Following the 10-30-60 design rule with proper spacing and light theme
+ * Structure inspired by GoogleFit.tsx with enhanced typography and layout
+ * Balance between dashboard functionality and good UI design
  */
 
 import React, { useState } from 'react';
@@ -17,282 +16,246 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import colors from '../../config/colors';
 import PagerView from 'react-native-pager-view';
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 // import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import ProgressRings from '../../components/ProgressRings';
 
-// A simple data structure for the swipeable cards
+// Enhanced data structure for the analytics cards
 const cardsData = [
-  { id: '1', type: 'routes', title: 'My Routes' },
-  { id: '2', type: 'attendance', title: 'Attendance Status' },
-  { id: '3', type: 'leaderboard', title: 'Leaderboard' },
+  { id: '1', type: 'fitness', title: 'Health Analytics', subtitle: 'Today\'s Progress' },
+  { id: '2', type: 'productivity', title: 'Performance Insights', subtitle: 'Weekly Summary' },
+  { id: '3', type: 'attendance', title: 'Attendance Overview', subtitle: 'Monthly Stats' },
+  { id: '4', type: 'achievements', title: 'Goal Achievement', subtitle: 'Current Streak' },
 ];
 
 const HomeScreen = () => {
-  const [activeTab, setActiveTab] = useState('All routes');
-  const [pagerIndex, setPagerIndex] = useState(0);
   // const navigation = useNavigation();
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
-  const currentTime = new Date();
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+  const showToast = () => {
+    Toast.show({
+      type: 'success',
+      text1: 'Welcome!',
+      text2: 'Dashboard ready 🎯',
     });
   };
 
-  /**
-   * Function to render the different swipeable cards based on their type.
-   * Each card is now a TouchableOpacity to enable interaction.
-   */
-  const renderCard = (cardType: string) => {
-    switch (cardType) {
-      case 'routes':
-        return (
-          <View style={styles.cardWrapper}>
-            <LinearGradient
-              colors={['#8E2DE2', '#4A00E0']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.cardContainer}
-            >
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>My Routes</Text>
-                <View style={styles.cardHeaderIcons}>
-                  <Icon
-                    name="stats-chart-outline"
-                    size={18}
-                    color="#fff"
-                    style={{ marginRight: 10 }}
-                  />
-                  <Icon name="pencil-outline" size={18} color="#fff" />
-                </View>
-              </View>
-              <View style={styles.cardBody}>
-                <View style={styles.cardSection}>
-                  <Text style={styles.cardSectionTitle}>Distance</Text>
-                  <Text style={styles.cardValue}>8,920 km</Text>
-                </View>
-                <View style={styles.cardSection}>
-                  <Text style={styles.cardSectionTitle}>Location</Text>
-                  <Text style={styles.cardValue}>356</Text>
-                </View>
-              </View>
-              <View style={styles.cardFooter}>
-                <View style={styles.cardFooterItem}>
-                  <Icon name="walk-outline" size={16} color="#fff" />
-                  <Text style={styles.cardFooterText}>224</Text>
-                </View>
-                <View style={styles.cardFooterItem}>
-                  <Icon name="bicycle-outline" size={16} color="#fff" />
-                  <Text style={styles.cardFooterText}>80</Text>
-                </View>
-                <View style={styles.cardFooterItem}>
-                  <Icon name="car-outline" size={16} color="#fff" />
-                  <Text style={styles.cardFooterText}>26</Text>
-                </View>
-                <View style={styles.cardFooterItem}>
-                  <Icon name="flag-outline" size={16} color="#fff" />
-                  <Text style={styles.cardFooterText}>26</Text>
-                </View>
-              </View>
-            </LinearGradient>
+  const handleCardPress = (cardType: string) => {
+    console.log(`Opening ${cardType} details...`);
+    // Add navigation logic here
+  };
+
+  const renderCard = (card: any, _index: number) => {
+    return (
+      <TouchableOpacity
+        key={card.id}
+        activeOpacity={0.92}
+        onPress={() => handleCardPress(card.type)}
+        style={styles.dataCard}>
+        
+        {/* Card Header */}
+        <View style={styles.cardHeader}>
+          <View style={styles.cardTitleSection}>
+            <Text style={styles.cardTitle}>{card.title}</Text>
+            <Text style={styles.cardSubtitle}>{card.subtitle}</Text>
           </View>
-        );
-      case 'attendance':
-        return (
-          <View style={styles.cardWrapper}>
-            <LinearGradient
-              colors={['#FF6B6B', '#EE9F9F']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.cardContainer}
-            >
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Attendance Status</Text>
-                <Icon name="calendar-outline" size={20} color="#fff" />
+          <TouchableOpacity style={styles.cardMenuButton}>
+            <Icon name="ellipsis-horizontal" size={16} color="#8B9DC3" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Card Content - Dynamic based on type */}
+        {card.type === 'fitness' && (
+          <View style={styles.fitnessCardContent}>
+            <View style={styles.progressSection}>
+              <ProgressRings 
+                move={0.75}
+                exercise={0.65} 
+                stand={0.85}
+                size={140}
+              />
+            </View>
+            <View style={styles.fitnessMetrics}>
+              <View style={styles.metricRow}>
+                <View style={styles.metricBadge}>
+                  <View style={[styles.metricLine, styles.moveColor]} />
+                  <Text style={styles.metricLabel}>Move</Text>
+                </View>
+                <Text style={styles.metricValue}>412 cal</Text>
               </View>
-              <View style={styles.cardBody}>
-                <Text style={styles.attendanceText}>Present Today</Text>
-                <Text style={styles.attendanceTime}>10:00 AM</Text>
+              <View style={styles.metricRow}>
+                <View style={styles.metricBadge}>
+                  <View style={[styles.metricLine, styles.exerciseColor]} />
+                  <Text style={styles.metricLabel}>Exercise</Text>
+                </View>
+                <Text style={styles.metricValue}>23 min</Text>
               </View>
-              <View style={styles.cardFooter}>
-                <Text style={styles.cardFooterText}>
-                  Total days present: 25/30
-                </Text>
+              <View style={styles.metricRow}>
+                <View style={styles.metricBadge}>
+                  <View style={[styles.metricLine, styles.standColor]} />
+                  <Text style={styles.metricLabel}>Stand</Text>
+                </View>
+                <Text style={styles.metricValue}>8/12 hr</Text>
               </View>
-            </LinearGradient>
+            </View>
           </View>
-        );
-      case 'leaderboard':
-        return (
-          <View style={styles.cardWrapper}>
-            <LinearGradient
-              colors={['#20BDFF', '#A5FECB']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.cardContainer}
-            >
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Leaderboard</Text>
-                <Icon name="trophy-outline" size={20} color="#fff" />
+        )}
+
+        {card.type === 'productivity' && (
+          <View style={styles.dataCardContent}>
+            <View style={styles.statsGrid}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>94%</Text>
+                <Text style={styles.statLabel}>Efficiency</Text>
               </View>
-              <View style={styles.cardBody}>
-                <Text style={styles.leaderboardText}>You are currently</Text>
-                <Text style={styles.leaderboardRank}>#5</Text>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>47</Text>
+                <Text style={styles.statLabel}>Tasks</Text>
               </View>
-              <View style={styles.cardFooter}>
-                <Text style={styles.cardFooterText}>View full leaderboard</Text>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>8.2h</Text>
+                <Text style={styles.statLabel}>Focus</Text>
               </View>
-            </LinearGradient>
+            </View>
+            <View style={styles.trendIndicator}>
+              <Icon name="trending-up" size={14} color="#4CAF50" />
+              <Text style={styles.trendText}>+12% this week</Text>
+            </View>
           </View>
-        );
-      default:
-        return null;
-    }
+        )}
+
+        {card.type === 'attendance' && (
+          <View style={styles.dataCardContent}>
+            <View style={styles.attendanceDisplay}>
+              <View style={styles.attendanceMain}>
+                <Text style={styles.attendancePercent}>98%</Text>
+                <Text style={styles.attendanceLabel}>This Month</Text>
+              </View>
+              <View style={styles.attendanceSecondary}>
+                <View style={styles.attendanceStat}>
+                  <Text style={styles.attendanceNumber}>23</Text>
+                  <Text style={styles.attendanceText}>Present</Text>
+                </View>
+                <View style={styles.attendanceStat}>
+                  <Text style={styles.attendanceNumber}>1</Text>
+                  <Text style={styles.attendanceText}>Absent</Text>
+                </View>
+              </View>
+            </View>
+            <View style={styles.streakBadge}>
+              <Icon name="flame" size={14} color="#FF9500" />
+              <Text style={styles.streakText}>15 day streak</Text>
+            </View>
+          </View>
+        )}
+
+        {card.type === 'achievements' && (
+          <View style={styles.dataCardContent}>
+            <View style={styles.achievementDisplay}>
+              <View style={styles.achievementMain}>
+                <Text style={styles.achievementScore}>12/15</Text>
+                <Text style={styles.achievementLabel}>Goals Completed</Text>
+              </View>
+              <View style={styles.achievementProgress}>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, styles.progressFill80]} />
+                </View>
+                <Text style={styles.progressText}>80% completion</Text>
+              </View>
+            </View>
+            <View style={styles.achievementBadge}>
+              <Icon name="trophy" size={14} color="#FFD700" />
+              <Text style={styles.badgeText}>Top Performer</Text>
+            </View>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.container}>
-          {/* Header Section */}
-          <View style={styles.header}>
-            <View style={styles.profileInfo}>
-              <Image
-                source={{
-                  uri: 'https://img.freepik.com/premium-photo/profile-icon-white-background_941097-162649.jpg',
-                }}
-                style={styles.profileImage}
-              />
-              <View>
-                <Text style={styles.greetingText}>Welcome back</Text>
-                <Text style={styles.userName}>John Vane</Text>
-                <Text style={styles.currentDate}>
-                  {formatDate(currentTime)}
-                </Text>
-              </View>
-            </View>
-            <View>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() =>
-                  Toast.show({
-                    type: 'info',
-                    text1: 'Notifications',
-                    text2: 'You have new notifications',
-                  })
-                }
-              >
-                <Icon name="notifications-outline" size={24} color="#000" />
-              </TouchableOpacity>
-            </View>
+    <SafeAreaView style={styles.container}>
+      {/* Clean Header - Following GoogleFit structure */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Image
+            source={{
+              uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+            }}
+            style={styles.profileImage}
+          />
+          <View style={styles.welcomeSection}>
+            <Text style={styles.greeting}>Good morning</Text>
+            <Text style={styles.userName}>Alex</Text>
           </View>
+        </View>
+        <TouchableOpacity
+          style={styles.notificationButton}
+          onPress={showToast}>
+          <Icon name="notifications-outline" size={20} color="#1A1A1A" />
+        </TouchableOpacity>
+      </View>
 
-          {/* Swipeable Card Section */}
-          <Text style={styles.sectionTitle}>Quick Insights</Text>
+      {/* Main Content */}
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}>
+        
+        {/* Today's Overview */}
+        <View style={styles.overviewSection}>
+          <Text style={styles.sectionTitle}>Today's Overview</Text>
+          <Text style={styles.sectionSubtitle}>Your performance at a glance</Text>
+        </View>
+
+        {/* Data Visualization Cards */}
+        <View style={styles.cardsContainer}>
           <PagerView
-            style={styles.pagerView}
-            initialPage={pagerIndex}
-            onPageSelected={e => setPagerIndex(e.nativeEvent.position)}
-          >
-            {cardsData.map(card => (
-              <View key={card.id}>{renderCard(card.type)}</View>
+            style={styles.pager}
+            initialPage={0}
+            onPageSelected={(e) => setCurrentCardIndex(e.nativeEvent.position)}>
+            {cardsData.map((card, index) => (
+              <View key={card.id} style={styles.pageWrapper}>
+                {renderCard(card, index)}
+              </View>
             ))}
           </PagerView>
 
-          {/* Pagination dots for the swipeable cards */}
-          <View style={styles.paginationContainer}>
+          {/* Page Indicators */}
+          <View style={styles.indicators}>
             {cardsData.map((_, index) => (
               <View
                 key={index}
                 style={[
-                  styles.paginationDot,
-                  {
-                    backgroundColor:
-                      pagerIndex === index ? '#4A00E0' : '#E0E0E0',
-                  },
+                  styles.indicator,
+                  index === currentCardIndex && styles.activeIndicator,
                 ]}
               />
             ))}
           </View>
+        </View>
 
-          {/* Quick Actions Section */}
-          <View style={styles.quickActionsContainer}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Quick Actions</Text>
-              <TouchableOpacity onPress={() => console.log('View all actions')}>
-                <Text style={styles.viewAllText}>View All ›</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.quickActionsGrid}>
+        {/* Quick Actions */}
+        <View style={styles.actionsSection}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.actionsGrid}>
+            {[
+              { icon: 'person-add-outline', title: 'Team', color: '#007AFF' },
+              { icon: 'bar-chart-outline', title: 'Analytics', color: '#34C759' },
+              { icon: 'calendar-outline', title: 'Schedule', color: '#FF3B30' },
+              { icon: 'settings-outline', title: 'Settings', color: '#AF52DE' },
+            ].map((action, index) => (
               <TouchableOpacity
-                style={styles.quickActionCard}
-                onPress={() => console.log('Check-in/out')}
-              >
-                <Icon name="timer-outline" size={30} color="#fff" />
-                <Text style={styles.quickActionText}>Check In/Out</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.quickActionCard}
-                onPress={() => console.log('View Announcements')}
-              >
-                <Icon name="megaphone-outline" size={30} color="#fff" />
-                <Text style={styles.quickActionText}>Announcements</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.quickActionCard}
-                onPress={() => console.log('Request Leave')}
-              >
-                <Icon name="calendar-outline" size={30} color="#fff" />
-                <Text style={styles.quickActionText}>Request Leave</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.quickActionCard}
-                onPress={() => console.log('View Dashboard')}
-              >
-                <Icon name="bar-chart-outline" size={30} color="#fff" />
-                <Text style={styles.quickActionText}>Dashboard</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Route Filters */}
-          <View style={styles.filterContainer}>
-            {['All routes', 'In planning', 'Completed'].map(tab => (
-              <TouchableOpacity
-                key={tab}
-                style={[
-                  styles.filterButton,
-                  activeTab === tab && styles.activeFilterButton,
-                ]}
-                onPress={() => setActiveTab(tab)}
-              >
-                <Text
-                  style={[
-                    styles.filterText,
-                    activeTab === tab && styles.activeFilterText,
-                  ]}
-                >
-                  {tab}
-                </Text>
+                key={index}
+                style={styles.actionCard}
+                activeOpacity={0.8}>
+                <View style={[styles.actionIcon, { backgroundColor: action.color }]}>
+                  <Icon name={action.icon} size={18} color="#FFFFFF" />
+                </View>
+                <Text style={styles.actionTitle}>{action.title}</Text>
               </TouchableOpacity>
             ))}
-          </View>
-
-          {/* This space can be used for a list of routes or other dynamic content */}
-          <View style={styles.emptyContentCard}>
-            <Text style={styles.emptyContentText}>
-              Content based on filter will appear here...
-
-            </Text>
-                <ProgressRings move={350} exercise={520} stand={20} />
           </View>
         </View>
       </ScrollView>
@@ -300,243 +263,487 @@ const HomeScreen = () => {
   );
 };
 
+/**
+ * Professional Light Theme Styles
+ * Following the 10-30-60 design rule:
+ * - 10% accent colors (buttons, highlights)
+ * - 30% secondary colors (text, borders)
+ * - 60% neutral colors (backgrounds, cards)
+ */
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F4F6FA',
-  },
+  // Main Container (60% - Primary neutral)
   container: {
     flex: 1,
-    paddingHorizontal: 18,
-    paddingTop: 15,
+    backgroundColor: '#F8F9FA', // Light neutral background
   },
+
+  // Header Section - Following GoogleFit minimal approach
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 25,
+    justifyContent: 'space-between',
+    paddingHorizontal: 15, // GoogleFit uses 15px
+    paddingVertical: 15,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  profileInfo: {
+
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+
   profileImage: {
-    width: 55,
-    height: 55,
-    borderRadius: 27.5,
-    marginRight: 15,
-    borderWidth: 2,
-    borderColor: '#fff',
-    elevation: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
   },
-  greetingText: {
+
+  welcomeSection: {
+    flexDirection: 'column',
+  },
+
+  greeting: {
     fontSize: 14,
-    color: '#6B7280',
-    letterSpacing: 0.3,
+    fontWeight: '400',
+    color: '#8E8E93', // 30% - Secondary text color
+    fontFamily: 'SF Pro Text', // Better typography
   },
+
   userName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1D1D1F', // Strong primary text
+    fontFamily: 'SF Pro Display', // Professional font
+  },
+
+  notificationButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Content Area
+  content: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+
+  // Overview Section
+  overviewSection: {
+    paddingHorizontal: 15,
+    paddingTop: 20,
+    paddingBottom: 15,
+  },
+
+  sectionTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#111827',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Display',
+    marginBottom: 4,
   },
-  currentDate: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    marginTop: 2,
+
+  sectionSubtitle: {
+    fontSize: 16,
+    fontWeight: '400',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
   },
-  iconButton: {
-    padding: 10,
-    borderRadius: 50,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
+
+  // Cards Container
+  cardsContainer: {
+    paddingBottom: 20, // Reduced bottom padding
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 12,
+
+  pager: {
+    height: 300, // Consistent height for all cards
+    marginBottom: 8, // Minimal space with indicators
   },
-  pagerView: {
-    height: 200,
-    marginBottom: 10,
-    marginHorizontal: -12,
+
+  pageWrapper: {
+    paddingHorizontal: 15,
   },
-  cardWrapper: {
-    flex: 1,
-    paddingHorizontal: 5,
-  },
-  cardContainer: {
-    flex: 1,
+
+  // Data Cards - 60% neutral background
+  dataCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 20,
-    borderRadius: 20,
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3,
+    borderWidth: 0.5,
+    borderColor: '#E5E5EA',
   },
+
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    marginBottom: 16,
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  cardHeaderIcons: {
-    flexDirection: 'row',
-  },
-  cardBody: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 10,
-  },
-  cardSection: {
+
+  cardTitleSection: {
     flex: 1,
   },
-  cardSectionTitle: {
-    fontSize: 12,
-    color: '#fff',
-    opacity: 0.8,
+
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Display',
+    marginBottom: 2,
   },
-  cardValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  cardFooterItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  cardFooterText: {
+
+  cardSubtitle: {
     fontSize: 14,
-    color: '#fff',
+    fontWeight: '400',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
+  },
+
+  cardMenuButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Fitness Card Content
+  fitnessCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 180, // Fixed height for consistency
+  },
+
+  progressSection: {
+    flex: 0.6, // Smaller space for progress rings
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingRight: 12, // Reduced padding
+  },
+
+  fitnessMetrics: {
+    flex: 1.4, // More space for metrics
+    paddingLeft: 8,
+  },
+
+  metricRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14, // Slightly increased spacing
+  },
+
+  metricBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  metricLine: {
+    width: 3, // Vertical line width
+    height: 16, // Vertical line height
+    borderRadius: 2,
+    marginRight: 10,
+  },
+
+  // Specific metric line colors
+  moveColor: {
+    backgroundColor: '#FF6B6B',
+  },
+
+  exerciseColor: {
+    backgroundColor: '#4ECDC4',
+  },
+
+  standColor: {
+    backgroundColor: '#45B7D1',
+  },
+
+  metricLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Text',
+  },
+
+  metricValue: {
+    fontSize: 18, // Larger font size for values
+    fontWeight: '700', // Bolder weight
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Display',
+  },
+
+  // Generic Data Card Content
+  dataCardContent: {
+    paddingTop: 10,
+    height: 180, // Same fixed height as fitness card
+    justifyContent: 'space-between',
+  },
+
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+
+  statNumber: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Display',
+    marginBottom: 4,
+  },
+
+  statLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
+  },
+
+  trendIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0F9FF',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+
+  trendText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#4CAF50',
+    fontFamily: 'SF Pro Text',
     marginLeft: 4,
   },
-  attendanceText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  attendanceTime: {
-    fontSize: 16,
-    color: '#fff',
-    opacity: 0.8,
-  },
-  leaderboardText: {
-    fontSize: 20,
-    color: '#fff',
-  },
-  leaderboardRank: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  paginationContainer: {
+
+  // Attendance Card
+  attendanceDisplay: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
   },
-  viewAllText: {
-    color: colors.primary,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  quickActionsContainer: {
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  quickActionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  quickActionCard: {
-    backgroundColor: colors.surface,
-    width: '48%',
-    height: 100,
-    marginBottom: 15,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  quickActionText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 5,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    backgroundColor: '#EAEAEA',
-    borderRadius: 15,
-    padding: 5,
-  },
-  filterButton: {
+
+  attendanceMain: {
     flex: 1,
-    paddingVertical: 10,
     alignItems: 'center',
-    borderRadius: 12,
   },
-  activeFilterButton: {
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+
+  attendancePercent: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#007AFF', // 10% - Accent color
+    fontFamily: 'SF Pro Display',
+    marginBottom: 4,
   },
-  filterText: {
+
+  attendanceLabel: {
     fontSize: 14,
-    color: '#888',
+    fontWeight: '500',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
   },
-  activeFilterText: {
-    color: '#000',
-    fontWeight: 'bold',
+
+  attendanceSecondary: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
-  emptyContentCard: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 15,
+
+  attendanceStat: {
+    alignItems: 'center',
+  },
+
+  attendanceNumber: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Display',
+    marginBottom: 2,
+  },
+
+  attendanceText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
+  },
+
+  streakBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 150,
+    backgroundColor: '#FFF7E6',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
   },
-  emptyContentText: {
-    color: '#888',
-    fontSize: 16,
+
+  streakText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FF9500',
+    fontFamily: 'SF Pro Text',
+    marginLeft: 4,
+  },
+
+  // Achievement Card
+  achievementDisplay: {
+    marginBottom: 16,
+  },
+
+  achievementMain: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+
+  achievementScore: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#34C759', // Success green
+    fontFamily: 'SF Pro Display',
+    marginBottom: 4,
+  },
+
+  achievementLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
+  },
+
+  achievementProgress: {
+    alignItems: 'center',
+  },
+
+  progressBar: {
+    width: '100%',
+    height: 6,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 3,
+    marginBottom: 8,
+  },
+
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#34C759',
+    borderRadius: 3,
+  },
+
+  // Dynamic progress width
+  progressFill80: {
+    width: '80%',
+  },
+
+  progressText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
+  },
+
+  achievementBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFBF0',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+
+  badgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFD700',
+    fontFamily: 'SF Pro Text',
+    marginLeft: 4,
+  },
+
+  // Page Indicators
+  indicators: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 8, // Minimal space from cards
+  },
+
+  indicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#D1D1D6',
+    marginHorizontal: 2, // Reduced margin between dots
+  },
+
+  activeIndicator: {
+    backgroundColor: '#007AFF', // 10% - Primary accent
+    width: 18, // Slightly smaller active indicator
+  },
+
+  // Quick Actions Section
+  actionsSection: {
+    paddingHorizontal: 15,
+    paddingBottom: 30,
+  },
+
+  actionsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 15,
+  },
+
+  actionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    flex: 0.22,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+    borderWidth: 0.5,
+    borderColor: '#E5E5EA',
+  },
+
+  actionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+
+  actionTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Text',
+    textAlign: 'center',
   },
 });
 

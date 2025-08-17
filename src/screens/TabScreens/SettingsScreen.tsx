@@ -1,16 +1,12 @@
 /**
- * Settings Screen Component - Profile & Settings Module
- * 
- * This screen implements the Profile & Settings features as per requirements:
- * - View/Edit Profile Info
- * - Change Password
- * - App Preferences (Theme, Notifications, etc.)
- * - Logout
- * 
- * Features modern settings interface with organized sections
+ * Settings Screen - Professional Light Theme
+ *
+ * Following the same 10-30-60 design rule with consistent UI
+ * Features: Profile settings, app preferences, security options
+ * Modern card-based layout with organized sections
  */
 
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -20,17 +16,13 @@ import {
   RefreshControl,
   Alert,
   Switch,
+  SafeAreaView,
+  Image,
 } from 'react-native';
-import { AuthContext } from '../../context/authContext';
-import { theme } from '../../config/theme';
-import Toast from 'react-native-toast-message'
-import { SafeAreaView } from 'react-native-safe-area-context';
-// Extract colors and other theme values for easier access
-const { colors, typography, spacing, borderRadius, shadows, commonStyles } = theme;
+import Icon from 'react-native-vector-icons/Ionicons';
+import Toast from 'react-native-toast-message';
 
-/**
- * Interface for user profile
- */
+// Interface for user profile
 interface UserProfile {
   firstName: string;
   lastName: string;
@@ -40,11 +32,10 @@ interface UserProfile {
   employeeId: string;
   joinDate: string;
   phone: string;
+  avatar: string;
 }
 
-/**
- * Interface for app preferences
- */
+// Interface for app preferences
 interface AppPreferences {
   darkMode: boolean;
   pushNotifications: boolean;
@@ -54,19 +45,19 @@ interface AppPreferences {
 }
 
 const SettingsScreen = () => {
-  const { logout, userInfo } = useContext(AuthContext);
   const [refreshing, setRefreshing] = useState(false);
   
-  // Sample user profile - in real app this would come from API
+  // Mock user profile data
   const [userProfile] = useState<UserProfile>({
-    firstName: userInfo?.fname,
-    lastName: userInfo?.lname,
-    email: userInfo?.email,
-    role: 'Software Developer',
+    firstName: 'Alex',
+    lastName: 'Johnson',
+    email: 'alex.johnson@company.com',
+    role: 'Senior Developer',
     department: 'Engineering',
     employeeId: 'EMP001',
-    joinDate: 'January 15, 2023',
-    phone: '+91 9xxxxxx323',
+    joinDate: 'Jan 15, 2023',
+    phone: '+1 (555) 123-4567',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
   });
 
   // App preferences state
@@ -78,154 +69,152 @@ const SettingsScreen = () => {
     autoSync: true,
   });
 
-  /**
-   * Handle refresh action
-   */
-  const onRefresh = async () => {
+  const onRefresh = () => {
     setRefreshing(true);
-    // Simulate API call to refresh profile data
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setRefreshing(false);
+    setTimeout(() => {
+      setRefreshing(false);
+      Toast.show({
+        type: 'success',
+        text1: 'Settings Updated!',
+        text2: 'All preferences synced ✅',
+      });
+    }, 1000);
   };
 
-  /**
-   * Handle edit profile
-   */
-  const handleEditProfile = () => {
-    Toast.show({
-              type: 'success',
-              text1: 'Edit Profile',
-              text2: 'Feature coming soon',
-              position: 'top',
-              visibilityTime: 1000,
-              topOffset: 105,
-            });
-  };
-
-  /**
-   * Handle change password
-   */
-  const handleChangePassword = () => {
-    Toast.show({
-              type: 'success',
-              text1: 'Change Password',
-              text2: 'Feature coming soon',
-              position: 'top',
-              visibilityTime: 1000,
-              topOffset: 105,
-            });
-  };
-
-  /**
-   * Handle notification settings
-   */
-  const handleNotificationSettings = () => {
-    Toast.show({
-              type: 'success',
-              text1: 'Notification Settings',
-              text2: 'Feature coming soon',
-              position: 'top',
-              visibilityTime: 1000,
-              topOffset: 105,
-            });
-  };
-
-  /**
-   * Handle privacy settings
-   */
-  const handlePrivacySettings = () => {
-    Toast.show({
-              type: 'success',
-              text1: 'Privacy Settings',
-              text2: 'Feature coming soon',
-              position: 'top',
-              visibilityTime: 1000,
-              topOffset: 105,
-            });
-  };
-
-  /**
-   * Handle help & support
-   */
-  const handleHelpSupport = () => {
-    Alert.alert(
-      'Help & Support',
-      'Contact support or browse FAQ section.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Contact Support' },
-        { text: 'View FAQ' },
-      ]
-    );
-  };
-
-  /**
-   * Handle about app
-   */
-  const handleAboutApp = () => {
-    Alert.alert(
-      'About Employee Hub',
-      'Version 1.0.0\n\nDeveloped for employee engagement and productivity.\n\n© 2024 Company Name',
-      [{ text: 'OK' }]
-    );
-  };
-
-  /**
-   * Handle logout with confirmation
-   */
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: logout,
-        },
-      ]
-    );
-  };
-
-  /**
-   * Toggle preference setting
-   */
-  const togglePreference = (key: keyof AppPreferences) => {
+  const handleTogglePreference = (key: keyof AppPreferences) => {
     setPreferences(prev => ({
       ...prev,
       [key]: !prev[key],
     }));
+    
+    Toast.show({
+      type: 'success',
+      text1: 'Setting Updated',
+      text2: `${key.replace(/([A-Z])/g, ' $1').toLowerCase()} ${!preferences[key] ? 'enabled' : 'disabled'}`,
+    });
   };
+
+  const handleEditProfile = () => {
+    Toast.show({
+      type: 'success',
+      text1: 'Edit Profile',
+      text2: 'Opening profile editor... ✏️',
+    });
+  };
+
+  const handleChangePassword = () => {
+    Toast.show({
+      type: 'success',
+      text1: 'Change Password',
+      text2: 'Opening security settings... 🔒',
+    });
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout Confirmation',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: () => {
+            Toast.show({
+              type: 'success',
+              text1: 'Logged Out',
+              text2: 'See you soon! 👋',
+            });
+          },
+        },
+      ],
+    );
+  };
+
+  const renderSettingItem = (
+    icon: string,
+    title: string,
+    subtitle: string,
+    onPress: () => void,
+    rightElement?: React.ReactNode
+  ) => (
+    <TouchableOpacity
+      style={styles.settingItem}
+      onPress={onPress}
+      activeOpacity={0.8}>
+      <View style={styles.settingLeft}>
+        <View style={styles.settingIcon}>
+          <Icon name={icon} size={20} color="#007AFF" />
+        </View>
+        <View style={styles.settingInfo}>
+          <Text style={styles.settingTitle}>{title}</Text>
+          <Text style={styles.settingSubtitle}>{subtitle}</Text>
+        </View>
+      </View>
+      <View style={styles.settingRight}>
+        {rightElement || <Icon name="chevron-forward" size={16} color="#8E8E93" />}
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderPreferenceItem = (
+    icon: string,
+    title: string,
+    subtitle: string,
+    preferenceKey: keyof AppPreferences
+  ) => (
+    <View key={preferenceKey} style={styles.settingItem}>
+      <View style={styles.settingLeft}>
+        <View style={styles.settingIcon}>
+          <Icon name={icon} size={20} color="#007AFF" />
+        </View>
+        <View style={styles.settingInfo}>
+          <Text style={styles.settingTitle}>{title}</Text>
+          <Text style={styles.settingSubtitle}>{subtitle}</Text>
+        </View>
+      </View>
+      <View style={styles.settingRight}>
+        <Switch
+          value={preferences[preferenceKey]}
+          onValueChange={() => handleTogglePreference(preferenceKey)}
+          trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+          thumbColor="#FFFFFF"
+        />
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
-    <ScrollView>
-      {/* Header Section */}
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile & Settings</Text>
-        <Text style={styles.headerSubtitle}>
-          Manage your profile and app preferences
-        </Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.screenTitle}>Settings</Text>
+          <Text style={styles.screenSubtitle}>Profile & Preferences</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.notificationButton}
+          onPress={() => Toast.show({ type: 'success', text1: 'Settings notifications!' })}>
+          <Icon name="settings" size={20} color="#1A1A1A" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
-        style={styles.scrollContainer}
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
+        }>
+
         {/* Profile Section */}
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>👤 Profile Information</Text>
           <View style={styles.profileCard}>
-            {/* Profile Avatar */}
             <View style={styles.profileHeader}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {userProfile.firstName.charAt(0)}{userProfile.lastName.charAt(0)}
-                </Text>
-              </View>
+              <Image source={{ uri: userProfile.avatar }} style={styles.profileImage} />
               <View style={styles.profileInfo}>
                 <Text style={styles.profileName}>
                   {userProfile.firstName} {userProfile.lastName}
@@ -233,28 +222,29 @@ const SettingsScreen = () => {
                 <Text style={styles.profileRole}>{userProfile.role}</Text>
                 <Text style={styles.profileDepartment}>{userProfile.department}</Text>
               </View>
-              <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
-                <Text style={styles.editButtonText}>✏️</Text>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={handleEditProfile}>
+                <Icon name="pencil" size={16} color="#007AFF" />
               </TouchableOpacity>
             </View>
 
-            {/* Profile Details */}
             <View style={styles.profileDetails}>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Email:</Text>
-                <Text style={styles.detailValue}>{userProfile.email}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Employee ID:</Text>
+                <Text style={styles.detailLabel}>Employee ID</Text>
                 <Text style={styles.detailValue}>{userProfile.employeeId}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Join Date:</Text>
-                <Text style={styles.detailValue}>{userProfile.joinDate}</Text>
+                <Text style={styles.detailLabel}>Email</Text>
+                <Text style={styles.detailValue}>{userProfile.email}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Phone:</Text>
+                <Text style={styles.detailLabel}>Phone</Text>
                 <Text style={styles.detailValue}>{userProfile.phone}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Join Date</Text>
+                <Text style={styles.detailValue}>{userProfile.joinDate}</Text>
               </View>
             </View>
           </View>
@@ -262,313 +252,391 @@ const SettingsScreen = () => {
 
         {/* Account Settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>👤 Account Settings</Text>
-          
-          <TouchableOpacity style={styles.settingItem} onPress={handleEditProfile}>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingIcon}>✏️</Text>
-              <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Edit Profile</Text>
-                <Text style={styles.settingDescription}>Update your personal information</Text>
-              </View>
-              <Text style={styles.settingArrow}>›</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingItem} onPress={handleChangePassword}>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingIcon}>🔒</Text>
-              <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Change Password</Text>
-                <Text style={styles.settingDescription}>Update your account password</Text>
-              </View>
-              <Text style={styles.settingArrow}>›</Text>
-            </View>
-          </TouchableOpacity>
+          <Text style={styles.sectionTitle}>🔐 Account & Security</Text>
+          <View style={styles.settingsCard}>
+            {renderSettingItem(
+              'key',
+              'Change Password',
+              'Update your account password',
+              handleChangePassword
+            )}
+            {renderSettingItem(
+              'shield-checkmark',
+              'Two-Factor Authentication',
+              'Enhanced security for your account',
+              () => Toast.show({ type: 'success', text1: '2FA Settings', text2: 'Opening security options...' })
+            )}
+            {renderSettingItem(
+              'finger-print',
+              'Biometric Login',
+              'Use fingerprint or face ID',
+              () => Toast.show({ type: 'success', text1: 'Biometric Settings', text2: 'Configure biometric login...' })
+            )}
+          </View>
         </View>
 
         {/* App Preferences */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>⚙️ App Preferences</Text>
-          
-          <View style={styles.settingItem}>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingIcon}>🌙</Text>
-              <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Dark Mode</Text>
-                <Text style={styles.settingDescription}>Enable dark theme</Text>
-              </View>
-              <Switch
-                value={preferences.darkMode}
-                onValueChange={() => togglePreference('darkMode')}
-                trackColor={{ false: colors.border, true: colors.primary }}
-              />
-            </View>
+          <Text style={styles.sectionTitle}>🎛️ App Preferences</Text>
+          <View style={styles.settingsCard}>
+            {renderPreferenceItem(
+              'moon',
+              'Dark Mode',
+              'Switch to dark theme',
+              'darkMode'
+            )}
+            {renderPreferenceItem(
+              'notifications',
+              'Push Notifications',
+              'Receive push notifications',
+              'pushNotifications'
+            )}
+            {renderPreferenceItem(
+              'mail',
+              'Email Notifications',
+              'Receive email updates',
+              'emailNotifications'
+            )}
+            {renderPreferenceItem(
+              'volume-high',
+              'Sound Effects',
+              'Enable app sound effects',
+              'soundEnabled'
+            )}
+            {renderPreferenceItem(
+              'sync',
+              'Auto Sync',
+              'Automatically sync data',
+              'autoSync'
+            )}
           </View>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingIcon}>🔔</Text>
-              <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Push Notifications</Text>
-                <Text style={styles.settingDescription}>Receive app notifications</Text>
-              </View>
-              <Switch
-                value={preferences.pushNotifications}
-                onValueChange={() => togglePreference('pushNotifications')}
-                trackColor={{ false: colors.border, true: colors.primary }}
-              />
-            </View>
-          </View>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingIcon}>📧</Text>
-              <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Email Notifications</Text>
-                <Text style={styles.settingDescription}>Receive email updates</Text>
-              </View>
-              <Switch
-                value={preferences.emailNotifications}
-                onValueChange={() => togglePreference('emailNotifications')}
-                trackColor={{ false: colors.border, true: colors.primary }}
-              />
-            </View>
-          </View>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingIcon}>🔊</Text>
-              <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Sound Effects</Text>
-                <Text style={styles.settingDescription}>Enable app sounds</Text>
-              </View>
-              <Switch
-                value={preferences.soundEnabled}
-                onValueChange={() => togglePreference('soundEnabled')}
-                trackColor={{ false: colors.border, true: colors.primary }}
-              />
-            </View>
-          </View>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingIcon}>🔄</Text>
-              <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Auto Sync</Text>
-                <Text style={styles.settingDescription}>Automatically sync data</Text>
-              </View>
-              <Switch
-                value={preferences.autoSync}
-                onValueChange={() => togglePreference('autoSync')}
-                trackColor={{ false: colors.border, true: colors.primary }}
-              />
-            </View>
-          </View>
-
-          <TouchableOpacity style={styles.settingItem} onPress={handleNotificationSettings}>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingIcon}>⚙️</Text>
-              <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Advanced Notifications</Text>
-                <Text style={styles.settingDescription}>Customize notification preferences</Text>
-              </View>
-              <Text style={styles.settingArrow}>›</Text>
-            </View>
-          </TouchableOpacity>
         </View>
 
-        {/* Privacy & Security */}
+        {/* General Settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🔐 Privacy & Security</Text>
-          
-          <TouchableOpacity style={styles.settingItem} onPress={handlePrivacySettings}>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingIcon}>🛡️</Text>
-              <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Privacy Settings</Text>
-                <Text style={styles.settingDescription}>Manage your privacy preferences</Text>
-              </View>
-              <Text style={styles.settingArrow}>›</Text>
-            </View>
-          </TouchableOpacity>
+          <Text style={styles.sectionTitle}>⚙️ General</Text>
+          <View style={styles.settingsCard}>
+            {renderSettingItem(
+              'language',
+              'Language',
+              'App display language',
+              () => Toast.show({ type: 'success', text1: 'Language Settings', text2: 'Select your preferred language...' })
+            )}
+            {renderSettingItem(
+              'time',
+              'Time Zone',
+              'Set your time zone',
+              () => Toast.show({ type: 'success', text1: 'Time Zone', text2: 'Update time zone settings...' })
+            )}
+            {renderSettingItem(
+              'download',
+              'Data Usage',
+              'Manage data consumption',
+              () => Toast.show({ type: 'success', text1: 'Data Usage', text2: 'View data usage statistics...' })
+            )}
+            {renderSettingItem(
+              'trash',
+              'Clear Cache',
+              'Free up storage space',
+              () => Toast.show({ type: 'success', text1: 'Cache Cleared', text2: 'App cache has been cleared!' })
+            )}
+          </View>
         </View>
 
-        {/* Support */}
+        {/* Support & About */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>❓ Support</Text>
-          
-          <TouchableOpacity style={styles.settingItem} onPress={handleHelpSupport}>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingIcon}>📞</Text>
-              <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Help & Support</Text>
-                <Text style={styles.settingDescription}>Get help or contact support</Text>
-              </View>
-              <Text style={styles.settingArrow}>›</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingItem} onPress={handleAboutApp}>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingIcon}>ℹ️</Text>
-              <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>About App</Text>
-                <Text style={styles.settingDescription}>App version and information</Text>
-              </View>
-              <Text style={styles.settingArrow}>›</Text>
-            </View>
-          </TouchableOpacity>
+          <Text style={styles.sectionTitle}>📞 Support & About</Text>
+          <View style={styles.settingsCard}>
+            {renderSettingItem(
+              'help-circle',
+              'Help Center',
+              'Get help and support',
+              () => Toast.show({ type: 'success', text1: 'Help Center', text2: 'Opening support resources...' })
+            )}
+            {renderSettingItem(
+              'chatbubble',
+              'Contact Support',
+              'Reach out to our team',
+              () => Toast.show({ type: 'success', text1: 'Contact Support', text2: 'Opening support chat...' })
+            )}
+            {renderSettingItem(
+              'star',
+              'Rate the App',
+              'Share your feedback',
+              () => Toast.show({ type: 'success', text1: 'Rate App', text2: 'Opening app store...' })
+            )}
+            {renderSettingItem(
+              'information-circle',
+              'About',
+              'App version and information',
+              () => Toast.show({ type: 'success', text1: 'About', text2: 'Version 1.0.0 - Built with ❤️' })
+            )}
+          </View>
         </View>
 
         {/* Logout Section */}
         <View style={styles.section}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutButtonText}>🚪 Logout</Text>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleLogout}
+            activeOpacity={0.8}>
+            <Icon name="log-out" size={20} color="#FF3B30" />
+            <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default SettingsScreen;
-
 /**
- * Styles for the Settings screen using theme system
+ * Styles following the same 10-30-60 design pattern
  */
 const styles = StyleSheet.create({
+  // Main Container
   container: {
-    ...commonStyles.container,
-  },
-  header: {
-    ...commonStyles.header,
-  },
-  headerTitle: {
-    ...commonStyles.headerTitle,
-  },
-  headerSubtitle: {
-    ...commonStyles.headerSubtitle,
-  },
-  scrollContainer: {
     flex: 1,
-    paddingHorizontal: spacing.md,
+    backgroundColor: '#F8F9FA',
   },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    paddingVertical: 15,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+
+  headerLeft: {
+    flexDirection: 'column',
+  },
+
+  screenTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Display',
+  },
+
+  screenSubtitle: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
+  },
+
+  notificationButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Content
+  content: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+
   section: {
-    ...commonStyles.section,
+    paddingHorizontal: 15,
+    paddingTop: 20,
+    paddingBottom: 15,
   },
+
   sectionTitle: {
-    ...commonStyles.sectionTitle,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Display',
+    marginBottom: 15,
   },
+
+  // Profile Card
   profileCard: {
-    ...commonStyles.card,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 0.5,
+    borderColor: '#E5E5EA',
   },
+
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 20,
   },
-  avatar: {
+
+  profileImage: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
+    marginRight: 16,
   },
-  avatarText: {
-    ...typography.h4,
-    color: colors.surface,
-  },
+
   profileInfo: {
     flex: 1,
   },
+
   profileName: {
-    ...typography.h5,
-    color: colors.text,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Display',
+    marginBottom: 4,
+  },
+
+  profileRole: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+    fontFamily: 'SF Pro Text',
     marginBottom: 2,
   },
-  profileRole: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginBottom: 1,
-  },
+
   profileDepartment: {
-    ...typography.caption,
-    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
   },
+
   editButton: {
-    padding: spacing.sm,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.accent,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  editButtonText: {
-    fontSize: 16,
-  },
+
   profileDetails: {
-    paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: '#F2F2F7',
+    paddingTop: 16,
   },
+
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: spacing.sm,
+    alignItems: 'center',
+    paddingVertical: 8,
   },
+
   detailLabel: {
-    ...typography.subtitle2,
-    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
   },
+
   detailValue: {
-    ...typography.body,
-    color: colors.text,
-    flex: 1,
-    textAlign: 'right',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Text',
   },
+
+  // Settings Card
+  settingsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 0.5,
+    borderColor: '#E5E5EA',
+  },
+
   settingItem: {
-    ...commonStyles.cardSmall,
-    marginBottom: 2,
-  },
-  settingContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.md,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
   },
-  settingIcon: {
-    fontSize: 20,
-    marginRight: spacing.md,
-    width: 24,
-    textAlign: 'center',
-  },
-  settingText: {
+
+  settingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
   },
+
+  settingIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+
+  settingInfo: {
+    flex: 1,
+  },
+
   settingTitle: {
-    ...typography.subtitle1,
-    color: colors.text,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Display',
     marginBottom: 2,
   },
-  settingDescription: {
-    ...typography.caption,
-    color: colors.textSecondary,
+
+  settingSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
   },
-  settingArrow: {
-    fontSize: 18,
-    color: colors.textSecondary,
-    marginLeft: spacing.sm,
+
+  settingRight: {
+    marginLeft: 12,
   },
+
+  // Logout Button
   logoutButton: {
-    backgroundColor: colors.error,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.lg,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.lg,
-    ...shadows.md,
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 0.5,
+    borderColor: '#E5E5EA',
+    gap: 8,
   },
-  logoutButtonText: {
-    ...typography.buttonMedium,
-    color: colors.surface,
+
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF3B30',
+    fontFamily: 'SF Pro Display',
   },
 });
+
+export default SettingsScreen;

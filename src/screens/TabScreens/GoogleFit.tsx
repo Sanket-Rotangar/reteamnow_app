@@ -6,12 +6,12 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
-  StatusBar,
   Button,
   Alert,
   RefreshControl,
 } from 'react-native';
-import Svg, { Circle, G } from 'react-native-svg';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import ProgressRings from '../../components/ProgressRings';
 import {
   requestHealthPermissions,
   readSteps,
@@ -37,28 +37,6 @@ const dailyGoalsData: DailyGoal[] = [
   { day: 'F', achieved: true },
   { day: 'S', achieved: false },
 ];
-
-const mainCircleProgress = {
-  radius: 80,
-  strokeWidth: 10,
-  progress: 75, // Assuming 75% progress for the inner circle
-};
-
-const mainCircleSteps = {
-  radius: 90,
-  strokeWidth: 10,
-  progress: 50, // Assuming 50% progress for the outer circle
-};
-
-const { radius, strokeWidth } = mainCircleProgress;
-const circumference = 2 * Math.PI * radius;
-const strokeDashoffset =
-  circumference - (mainCircleProgress.progress / 100) * circumference;
-
-const stepsRadius = mainCircleSteps.radius;
-const stepsCircumference = 2 * Math.PI * stepsRadius;
-const stepsStrokeDashoffset =
-  stepsCircumference - (mainCircleSteps.progress / 100) * stepsCircumference;
 
 // A functional component for a single daily goal item
 const DailyGoalItem: React.FC<{ goal: DailyGoal }> = ({ goal }) => (
@@ -182,110 +160,108 @@ const GoogleFit: React.FC = () => {
           />
         }
       >
-        {/* Top Header */}
+        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.timeText}>Fitness Connect</Text>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.iconButton}>
-              <Text style={{ fontSize: 24 }}>ⓘ</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.profilePic}
-              onPress={handlePermissionRequest}
-            >
-              <Text style={{ fontSize: 24, marginLeft: 6, marginTop: 3 }}>
-                👤
-              </Text>
-            </TouchableOpacity>
+          <View style={styles.headerLeft}>
+            <Text style={styles.screenTitle}>Fitness Tracker</Text>
+            <Text style={styles.screenSubtitle}>Health & Activity</Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.profileButton}
+            onPress={handlePermissionRequest}
+          >
+            <Ionicons name="person" size={18} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Today's Activity Card with New Layout */}
+        <View style={styles.overviewCard}>
+          <View style={styles.overviewHeader}>
+            <Text style={styles.overviewTitle}>Today's Activity</Text>
+            <Text style={styles.overviewDate}>
+              {new Date().toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric' 
+              })}
+            </Text>
+          </View>
+
+          {/* Progress Section with Values on Left and Rings on Right */}
+          <View style={styles.activityLayoutContainer}>
+            <View style={styles.activityValuesSection}>
+              <View style={styles.valueRow}>
+                <View style={styles.valueLineRed} />
+                <View style={styles.valueContent}>
+                  <Text style={styles.activityValueText}>
+                    {loading ? '...' : (Math.random() * 500 + 200).toFixed(0)}
+                  </Text>
+                  <Text style={styles.activityCategoryText}>calories</Text>
+                </View>
+              </View>
+              
+              <View style={styles.valueRow}>
+                <View style={styles.valueLineGreen} />
+                <View style={styles.valueContent}>
+                  <Text style={styles.activityValueText}>
+                    {loading ? '...' : (Math.random() * 60 + 30).toFixed(0)}
+                  </Text>
+                  <Text style={styles.activityCategoryText}>exercise mins</Text>
+                </View>
+              </View>
+              
+              <View style={styles.valueRow}>
+                <View style={styles.valueLineBlue} />
+                <View style={styles.valueContent}>
+                  <Text style={styles.activityValueText}>
+                    {loading ? '...' : (Math.random() * 12 + 6).toFixed(0)}
+                  </Text>
+                  <Text style={styles.activityCategoryText}>stand hours</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.progressRingsSection}>
+              <ProgressRings 
+                move={steps / 10000} // Assuming 10k steps goal
+                exercise={0.65} // Heart points progress
+                stand={0.85} // Move minutes progress
+                size={120}
+              />
+            </View>
           </View>
         </View>
 
-        {/* Main Progress Circle Section */}
-        <View style={styles.progressContainer}>
-          <Svg height={220} width={220} viewBox="0 0 220 220">
-            <G rotation="-90" origin="110, 110">
-              {/* Outer circle (steps) */}
-              <Circle
-                cx="110"
-                cy="110"
-                r={stepsRadius}
-                stroke="#c3e8ff"
-                strokeWidth={mainCircleSteps.strokeWidth}
-                fill="transparent"
-              />
-              <Circle
-                cx="110"
-                cy="110"
-                r={stepsRadius}
-                stroke="#479aff"
-                strokeWidth={mainCircleSteps.strokeWidth}
-                fill="transparent"
-                strokeDasharray={stepsCircumference}
-                strokeDashoffset={stepsStrokeDashoffset}
-                strokeLinecap="round"
-              />
+        {/* Compact Activity Metrics */}
+        <View style={styles.compactMetrics}>
+          <View style={styles.compactMetricItem}>
+            <View style={styles.compactMetricIcon}>
+              <Ionicons name="walk" size={20} color="#30D158" />
+            </View>
+            <Text style={styles.compactMetricValue}>
+              {loading ? '...' : (Math.random() * 5 + 1).toFixed(1)}
+            </Text>
+            <Text style={styles.compactMetricLabel}>km</Text>
+          </View>
 
-              {/* Inner circle (heart pts) */}
-              <Circle
-                cx="110"
-                cy="110"
-                r={radius}
-                stroke="#e0f2f1"
-                strokeWidth={strokeWidth}
-                fill="transparent"
-              />
-              <Circle
-                cx="110"
-                cy="110"
-                r={radius}
-                stroke="#26a69a"
-                strokeWidth={strokeWidth}
-                fill="transparent"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-              />
-            </G>
-          </Svg>
-          <View style={styles.progressTextContainer}>
-            <Text style={styles.heartPtsValue}>
-              {loading ? '...' : (Math.random() * 100 + 1).toFixed(0)}
+          <View style={styles.compactMetricItem}>
+            <View style={styles.compactMetricIcon}>
+              <Ionicons name="time" size={20} color="#007AFF" />
+            </View>
+            <Text style={styles.compactMetricValue}>
+              {loading ? '...' : (Math.random() * 60 + 30).toFixed(0)}
             </Text>
-            <Text style={styles.stepsValue}>{loading ? '...' : steps}</Text>
+            <Text style={styles.compactMetricLabel}>min</Text>
           </View>
-        </View>
 
-        {/* Heart Points and Steps Icons */}
-        <View style={styles.statsIconsContainer}>
-          <View style={styles.statsIconRow}>
-            <Text style={styles.statsIcon}>💙</Text>
-            <Text style={styles.statsLabel}>Heart Pts</Text>
-          </View>
-          <View style={styles.statsIconRow}>
-            <Text style={styles.statsIcon}>👟</Text>
-            <Text style={styles.statsLabel}>Steps</Text>
-          </View>
-        </View>
-
-        {/* Cal, km, Move Min */}
-        <View style={styles.metricsContainer}>
-          <View style={styles.metricItem}>
-            <Text style={styles.metricValue}>
-              {loading ? '...' : Math.random().toFixed(2)}
+          <View style={styles.compactMetricItem}>
+            <View style={styles.compactMetricIcon}>
+              <Ionicons name="footsteps" size={20} color="#FF9500" />
+            </View>
+            <Text style={styles.compactMetricValue}>
+              {loading ? '...' : steps.toLocaleString()}
             </Text>
-            <Text style={styles.metricLabel}>Cal</Text>
-          </View>
-          <View style={styles.metricItem}>
-            <Text style={styles.metricValue}>
-              {loading ? '...' : Math.random().toFixed(2)}
-            </Text>
-            <Text style={styles.metricLabel}>km</Text>
-          </View>
-          <View style={styles.metricItem}>
-            <Text style={styles.metricValue}>
-              {loading ? '...' : Math.random().toFixed(2)}
-            </Text>
-            <Text style={styles.metricLabel}>Move Min</Text>
+            <Text style={styles.compactMetricLabel}>steps</Text>
           </View>
         </View>
 
@@ -338,13 +314,392 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f8f9fa',
   },
-  header: {
+  // Consistent Header Styles (matching other screens)
+  consistentHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#fff',
+  },
+  consistentHeaderTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    fontFamily: 'SF Pro Display',
+  },
+  consistentHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  consistentIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  consistentProfileButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // Overview Card Styles
+  overviewCard: {
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 16,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  overviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  overviewTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    fontFamily: 'SF Pro Display',
+  },
+  overviewDate: {
+    fontSize: 15,
+    color: '#666',
+    fontWeight: '500',
+    fontFamily: 'SF Pro Text',
+  },
+  // New Activity Layout Container
+  activityLayoutContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  activityValuesSection: {
+    flex: 1,
+    paddingRight: 20,
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  valueLineRed: {
+    width: 3,
+    height: 24,
+    backgroundColor: '#FF3B30',
+    borderRadius: 1.5,
+    marginRight: 12,
+  },
+  valueLineGreen: {
+    width: 3,
+    height: 24,
+    backgroundColor: '#30D158',
+    borderRadius: 1.5,
+    marginRight: 12,
+  },
+  valueLineBlue: {
+    width: 3,
+    height: 24,
+    backgroundColor: '#007AFF',
+    borderRadius: 1.5,
+    marginRight: 12,
+  },
+  valueContent: {
+    flex: 1,
+  },
+  activityValueText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    fontFamily: 'SF Pro Display',
+    marginBottom: 2,
+  },
+  activityCategoryText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+    fontFamily: 'SF Pro Text',
+  },
+  progressRingsSection: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Compact Metrics Styles
+  compactMetrics: {
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  compactMetricItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  compactMetricIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f8f9fa',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  compactMetricValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    fontFamily: 'SF Pro Display',
+    marginBottom: 2,
+  },
+  compactMetricLabel: {
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '500',
+    fontFamily: 'SF Pro Text',
+  },
+  // Modern Header Styles (kept for reference but not used)
+  modernHeader: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    fontFamily: 'SF Pro Display',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 2,
+    fontFamily: 'SF Pro Text',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  modernIconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modernProfileButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  profileIconContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // Progress Rings Container (legacy)
+  progressRingsContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  progressRingsWrapper: {
+    marginBottom: 20,
+  },
+  progressLegend: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 24,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+    fontFamily: 'SF Pro Text',
+  },
+  // Quick Stats (legacy)
+  quickStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+  },
+  statIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 2,
+    fontFamily: 'SF Pro Display',
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '500',
+    fontFamily: 'SF Pro Text',
+  },
+  // Activity Summary
+  activitySummary: {
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  activityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  activityIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#f8f9fa',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  activityDetails: {
+    flex: 1,
+  },
+  activityValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 2,
+    fontFamily: 'SF Pro Display',
+  },
+  activityLabel: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+    fontFamily: 'SF Pro Text',
+  },
+  activityProgress: {
+    width: 60,
+    height: 4,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 2,
+    marginLeft: 16,
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#30D158',
+    borderRadius: 2,
+  },
+  // Keep existing styles for the rest of the screen
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    paddingVertical: 15,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  headerLeft: {
+    flexDirection: 'column',
+  },
+  screenTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Display',
+  },
+  screenSubtitle: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
+  },
+  profileButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 2,
   },
   timeText: {
     fontSize: 16,
