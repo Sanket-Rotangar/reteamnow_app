@@ -69,36 +69,39 @@ const HomeScreen = () => {
         {/* Card Content - Dynamic based on type */}
         {card.type === 'fitness' && (
           <View style={styles.fitnessCardContent}>
-            <View style={styles.progressSection}>
+            <View style={styles.activityValuesSection}>
+              <View style={styles.valueRow}>
+                <View style={styles.valueLineRed} />
+                <View style={styles.valueContent}>
+                  <Text style={styles.activityValueText}>412</Text>
+                  <Text style={styles.activityCategoryText}>calories</Text>
+                </View>
+              </View>
+              
+              <View style={styles.valueRow}>
+                <View style={styles.valueLineGreen} />
+                <View style={styles.valueContent}>
+                  <Text style={styles.activityValueText}>23</Text>
+                  <Text style={styles.activityCategoryText}>exercise mins</Text>
+                </View>
+              </View>
+              
+              <View style={styles.valueRow}>
+                <View style={styles.valueLineBlue} />
+                <View style={styles.valueContent}>
+                  <Text style={styles.activityValueText}>8/12</Text>
+                  <Text style={styles.activityCategoryText}>stand hours</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.progressRingsSection}>
               <ProgressRings 
                 move={0.75}
                 exercise={0.65} 
                 stand={0.85}
                 size={140}
               />
-            </View>
-            <View style={styles.fitnessMetrics}>
-              <View style={styles.metricRow}>
-                <View style={styles.metricBadge}>
-                  <View style={[styles.metricLine, styles.moveColor]} />
-                  <Text style={styles.metricLabel}>Move</Text>
-                </View>
-                <Text style={styles.metricValue}>412 cal</Text>
-              </View>
-              <View style={styles.metricRow}>
-                <View style={styles.metricBadge}>
-                  <View style={[styles.metricLine, styles.exerciseColor]} />
-                  <Text style={styles.metricLabel}>Exercise</Text>
-                </View>
-                <Text style={styles.metricValue}>23 min</Text>
-              </View>
-              <View style={styles.metricRow}>
-                <View style={styles.metricBadge}>
-                  <View style={[styles.metricLine, styles.standColor]} />
-                  <Text style={styles.metricLabel}>Stand</Text>
-                </View>
-                <Text style={styles.metricValue}>8/12 hr</Text>
-              </View>
             </View>
           </View>
         )}
@@ -182,7 +185,7 @@ const HomeScreen = () => {
         <View style={styles.headerLeft}>
           <Image
             source={{
-              uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+              uri: 'https://img.freepik.com/premium-photo/hooded-hacker-logo-mascot_941097-24659.jpg',
             }}
             style={styles.profileImage}
           />
@@ -426,65 +429,67 @@ const styles = StyleSheet.create({
   fitnessCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     height: 180, // Fixed height for consistency
   },
 
-  progressSection: {
-    flex: 0.6, // Smaller space for progress rings
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingRight: 12, // Reduced padding
+  activityValuesSection: {
+    flex: 1,
+    paddingRight: 20,
   },
 
-  fitnessMetrics: {
-    flex: 1.4, // More space for metrics
-    paddingLeft: 8,
-  },
-
-  metricRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14, // Slightly increased spacing
-  },
-
-  metricBadge: {
+  valueRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 16,
   },
 
-  metricLine: {
-    width: 3, // Vertical line width
-    height: 16, // Vertical line height
-    borderRadius: 2,
-    marginRight: 10,
+  valueLineRed: {
+    width: 3,
+    height: 24,
+    backgroundColor: '#FF3B30',
+    borderRadius: 1.5,
+    marginRight: 12,
   },
 
-  // Specific metric line colors
-  moveColor: {
-    backgroundColor: '#FF6B6B',
+  valueLineGreen: {
+    width: 3,
+    height: 24,
+    backgroundColor: '#30D158',
+    borderRadius: 1.5,
+    marginRight: 12,
   },
 
-  exerciseColor: {
-    backgroundColor: '#4ECDC4',
+  valueLineBlue: {
+    width: 3,
+    height: 24,
+    backgroundColor: '#007AFF',
+    borderRadius: 1.5,
+    marginRight: 12,
   },
 
-  standColor: {
-    backgroundColor: '#45B7D1',
+  valueContent: {
+    flex: 1,
   },
 
-  metricLabel: {
+  activityValueText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    fontFamily: 'SF Pro Display',
+    marginBottom: 2,
+  },
+
+  activityCategoryText: {
     fontSize: 14,
+    color: '#666',
     fontWeight: '500',
-    color: '#1D1D1F',
     fontFamily: 'SF Pro Text',
   },
 
-  metricValue: {
-    fontSize: 18, // Larger font size for values
-    fontWeight: '700', // Bolder weight
-    color: '#1D1D1F',
-    fontFamily: 'SF Pro Display',
+  progressRingsSection: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // Generic Data Card Content

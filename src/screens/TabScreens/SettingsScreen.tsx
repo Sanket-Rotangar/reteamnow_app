@@ -49,15 +49,15 @@ const SettingsScreen = () => {
   
   // Mock user profile data
   const [userProfile] = useState<UserProfile>({
-    firstName: 'Alex',
-    lastName: 'Johnson',
-    email: 'alex.johnson@company.com',
+    firstName: 'Sanket',
+    lastName: 'Rotangar',
+    email: 'sanket.rotangar@company.com',
     role: 'Senior Developer',
     department: 'Engineering',
     employeeId: 'EMP001',
     joinDate: 'Jan 15, 2023',
     phone: '+1 (555) 123-4567',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    avatar: 'https://img.freepik.com/premium-photo/hooded-hacker-logo-mascot_941097-24659.jpg',
   });
 
   // App preferences state
