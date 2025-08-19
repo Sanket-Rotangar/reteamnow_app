@@ -1,74 +1,261 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-} from 'react-native';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { colors } from '../../../config/colors';
 import { fontSizes, fontWeights } from '../../../config/typography';
 
 const FitnessScreen: React.FC = () => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideUpAnim = useRef(new Animated.Value(50)).current;
+  const slideDownAnim = useRef(new Animated.Value(-30)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  // Premium floating animations
+  const floatAnim1 = useRef(new Animated.Value(0)).current;
+  const floatAnim2 = useRef(new Animated.Value(0)).current;
+  const floatAnim3 = useRef(new Animated.Value(0)).current;
+  const floatAnim4 = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Only icon pulse animation
-    Animated.loop(
+    // Orchestrated entrance sequence
+    const startSequence = () => {
       Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.08,
-          duration: 2500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 1200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideUpAnim, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideDownAnim, {
+            toValue: 0,
+            duration: 900,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.spring(scaleAnim, {
           toValue: 1,
-          duration: 2500,
+          tension: 50,
+          friction: 8,
           useNativeDriver: true,
         }),
-      ])
-    ).start();
-  }, [pulseAnim]);
+      ]).start();
+    };
+
+    // Start entrance sequence
+    const entranceTimer = setTimeout(startSequence, 300);
+
+    // Continuous animations
+    const continuousTimer = setTimeout(() => {
+      // Pulse animation
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.08,
+            duration: 2500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 2500,
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
+
+      // Rotation animation
+      Animated.loop(
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 25000,
+          useNativeDriver: true,
+        }),
+      ).start();
+
+      // Floating animations
+      [floatAnim1, floatAnim2, floatAnim3, floatAnim4].forEach(
+        (anim, index) => {
+          Animated.loop(
+            Animated.sequence([
+              Animated.timing(anim, {
+                toValue: -8 + index * 2,
+                duration: 2000 + index * 300,
+                useNativeDriver: true,
+              }),
+              Animated.timing(anim, {
+                toValue: 8 - index * 2,
+                duration: 2000 + index * 300,
+                useNativeDriver: true,
+              }),
+            ]),
+          ).start();
+        },
+      );
+    }, 1000);
+
+    return () => {
+      clearTimeout(entranceTimer);
+      clearTimeout(continuousTimer);
+    };
+  }, [
+    fadeAnim,
+    slideUpAnim,
+    slideDownAnim,
+    scaleAnim,
+    pulseAnim,
+    rotateAnim,
+    floatAnim1,
+    floatAnim2,
+    floatAnim3,
+    floatAnim4,
+  ]);
 
   return (
     <View style={styles.container}>
       {/* Premium Background with Gradient Overlay */}
       <View style={styles.backgroundContainer}>
         <View style={styles.backgroundPattern}>
-          <View style={[styles.gradientOrb, styles.orb1]} />
-          <View style={[styles.gradientOrb, styles.orb2]} />
-          <View style={[styles.gradientOrb, styles.orb3]} />
+          <Animated.View
+            style={[
+              styles.gradientOrb,
+              styles.orb1,
+              {
+                transform: [
+                  {
+                    rotate: rotateAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0deg', '360deg'],
+                    }),
+                  },
+                  { scale: pulseAnim },
+                ],
+              },
+            ]}
+          />
+          <Animated.View
+            style={[
+              styles.gradientOrb,
+              styles.orb2,
+              {
+                transform: [
+                  {
+                    rotate: rotateAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['360deg', '0deg'],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          />
+          <Animated.View
+            style={[
+              styles.gradientOrb,
+              styles.orb3,
+              {
+                transform: [
+                  {
+                    scale: pulseAnim.interpolate({
+                      inputRange: [1, 1.08],
+                      outputRange: [1, 0.95],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          />
         </View>
 
         <LinearGradient
           colors={[
-            'rgba(39, 174, 96, 0.08)',
-            'rgba(52, 152, 219, 0.05)',
-            'transparent',
+            `${colors.background}95`,
+            `${colors.background}85`,
+            `${colors.background}95`,
           ]}
           style={styles.gradientOverlay}
-          start={{x: 0, y: 0}}
-          end={{x: 1, y: 1}}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
         />
       </View>
 
       {/* Premium Center Piece */}
-      <View style={styles.centerPiece}>
+      <Animated.View
+        style={[
+          styles.centerPiece,
+          {
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }],
+          },
+        ]}
+      >
         <View style={styles.premiumIllustration}>
-          {/* Central Health Hub */}
-          <View style={styles.centralHub}>
+          {/* Central Health Hub with Pulse Effects */}
+          <Animated.View
+            style={[
+              styles.centralHub,
+              {
+                transform: [{ scale: pulseAnim }],
+              },
+            ]}
+          >
             <LinearGradient
-              colors={[colors.success, `${colors.success}70`]}
+              colors={[colors.success, `${colors.success}80`, colors.success]}
               style={styles.hubGradient}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 1}}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
             />
             <View style={styles.hubCore}>
               <Text style={styles.hubIcon}>❤️</Text>
             </View>
-          </View>
+          </Animated.View>
 
-          {/* Floating Health Icons */}
+          {/* Pulse Rings */}
+          <Animated.View
+            style={[
+              styles.pulseRing1,
+              {
+                transform: [
+                  {
+                    scale: pulseAnim.interpolate({
+                      inputRange: [1, 1.08],
+                      outputRange: [1, 1.3],
+                    }),
+                  },
+                ],
+                opacity: pulseAnim.interpolate({
+                  inputRange: [1, 1.08],
+                  outputRange: [0.3, 0.1],
+                }),
+              },
+            ]}
+          />
+          <Animated.View
+            style={[
+              styles.pulseRing2,
+              {
+                transform: [
+                  {
+                    scale: pulseAnim.interpolate({
+                      inputRange: [1, 1.08],
+                      outputRange: [1, 1.5],
+                    }),
+                  },
+                ],
+                opacity: pulseAnim.interpolate({
+                  inputRange: [1, 1.08],
+                  outputRange: [0.2, 0.05],
+                }),
+              },
+            ]}
+          />
+
+          {/* Floating Fitness Icons */}
           <View style={styles.connectionNetwork}>
             {[
               { icon: '🏃‍♂️', position: styles.node1 },
@@ -86,13 +273,16 @@ const FitnessScreen: React.FC = () => {
                     transform: [
                       {
                         scale: pulseAnim.interpolate({
-                          inputRange: [1, 1.08],
-                          outputRange: [0.95 + (index * 0.01), 1.05 + (index * 0.01)],
+                          inputRange: [0.8, 1],
+                          outputRange: [
+                            0.95 + index * 0.01,
+                            1.05 + index * 0.01,
+                          ],
                         }),
                       },
                     ],
                     opacity: pulseAnim.interpolate({
-                      inputRange: [1, 1.08],
+                      inputRange: [0.8, 1],
                       outputRange: [0.85, 1],
                     }),
                   },
@@ -107,83 +297,130 @@ const FitnessScreen: React.FC = () => {
             ))}
           </View>
         </View>
-      </View>
+      </Animated.View>
 
       {/* Premium Content Section */}
-      <View style={styles.contentSection}>
-        <View style={styles.taglineContainer}>
+      <Animated.View
+        style={[
+          styles.contentSection,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideUpAnim }],
+          },
+        ]}
+      >
+        <Animated.View
+          style={[
+            styles.taglineContainer,
+            {
+              transform: [{ scale: scaleAnim }],
+            },
+          ]}
+        >
           <Text style={styles.primaryTagline}>Health & Wellness</Text>
           <View style={styles.taglineDivider} />
           <Text style={styles.secondaryTagline}>
             Track your fitness journey and maintain a healthy work-life balance
           </Text>
-        </View>
+        </Animated.View>
 
         {/* Feature Highlights */}
         <View style={styles.featureHighlights}>
           <View style={styles.featureGrid}>
             {[
-              { 
-                icon: '📊', 
+              {
+                icon: '📊',
                 title: 'Activity Tracking',
                 subtitle: 'Monitor daily fitness',
                 color: colors.info,
-                gradient: [colors.info, `${colors.info}70`]
+                gradient: [colors.info, `${colors.info}70`],
               },
-              { 
-                icon: '🎯', 
+              {
+                icon: '🎯',
                 title: 'Personal Goals',
                 subtitle: 'Achieve milestones',
                 color: colors.warning,
-                gradient: [colors.warning, `${colors.warning}70`]
+                gradient: [colors.warning, `${colors.warning}70`],
               },
-              { 
-                icon: '📈', 
+              {
+                icon: '📈',
                 title: 'Progress Analytics',
                 subtitle: 'Track your journey',
                 color: colors.success,
-                gradient: [colors.success, `${colors.success}70`]
+                gradient: [colors.success, `${colors.success}70`],
               },
             ].map((feature, index) => (
-              <View
+              <Animated.View
                 key={index}
-                style={styles.featureCard}
+                style={[
+                  styles.featureCard,
+                  {
+                    transform: [
+                      {
+                        translateY: slideUpAnim.interpolate({
+                          inputRange: [0, 50],
+                          outputRange: [0, 30 + index * 12],
+                        }),
+                      },
+                      {
+                        scale: scaleAnim.interpolate({
+                          inputRange: [0.8, 1],
+                          outputRange: [0.88, 1],
+                        }),
+                      },
+                    ],
+                    opacity: fadeAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 1 - index * 0.08],
+                    }),
+                  },
+                ]}
               >
                 {/* Card Background System */}
                 <View style={styles.cardBackgroundSystem}>
                   <LinearGradient
-                    colors={[colors.surface, `${colors.surface}F8`, colors.surface]}
+                    colors={[
+                      colors.surface,
+                      `${colors.surface}F8`,
+                      colors.surface,
+                    ]}
                     style={styles.cardPrimaryBackground}
                   />
                   <LinearGradient
-                    colors={[`${feature.color}08`, 'transparent', `${feature.color}05`]}
+                    colors={[
+                      `${feature.color}08`,
+                      'transparent',
+                      `${feature.color}05`,
+                    ]}
                     style={styles.cardAccentGlow}
-                    start={{x: 0, y: 0}}
-                    end={{x: 1, y: 1}}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                   />
                 </View>
 
                 {/* Feature Icon Section */}
                 <View style={styles.featureIconSection}>
-                  <Animated.View 
+                  <Animated.View
                     style={[
                       styles.iconContainer,
                       {
                         backgroundColor: `${feature.color}15`,
-                        transform: [{ 
-                          scale: pulseAnim.interpolate({
-                            inputRange: [1, 1.08],
-                            outputRange: [1, 1.04],
-                          })
-                        }]
-                      }
+                        transform: [
+                          {
+                            scale: pulseAnim.interpolate({
+                              inputRange: [1, 1.08],
+                              outputRange: [1, 1.04],
+                            }),
+                          },
+                        ],
+                      },
                     ]}
                   >
                     <LinearGradient
                       colors={feature.gradient}
                       style={styles.iconGradientBg}
-                      start={{x: 0, y: 0}}
-                      end={{x: 1, y: 1}}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
                     />
                     <Text style={styles.featureIcon}>{feature.icon}</Text>
                   </Animated.View>
@@ -192,7 +429,12 @@ const FitnessScreen: React.FC = () => {
                 {/* Content Section */}
                 <View style={styles.featureContent}>
                   <Text style={styles.featureTitle}>{feature.title}</Text>
-                  <Text style={[styles.featureSubtitle, { color: `${feature.color}C0` }]}>
+                  <Text
+                    style={[
+                      styles.featureSubtitle,
+                      { color: `${feature.color}C0` },
+                    ]}
+                  >
                     {feature.subtitle}
                   </Text>
                 </View>
@@ -203,35 +445,37 @@ const FitnessScreen: React.FC = () => {
                   <LinearGradient
                     colors={feature.gradient}
                     style={styles.cardRightBorder}
-                    start={{x: 0, y: 0}}
-                    end={{x: 0, y: 1}}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
                   />
-                  
+
                   {/* Pulse Indicator */}
-                  <Animated.View 
+                  <Animated.View
                     style={[
                       styles.cardPulseIndicator,
                       {
                         backgroundColor: feature.color,
-                        transform: [{ 
-                          scale: pulseAnim.interpolate({
-                            inputRange: [1, 1.08],
-                            outputRange: [0.8, 1],
-                          })
-                        }],
+                        transform: [
+                          {
+                            scale: pulseAnim.interpolate({
+                              inputRange: [1, 1.08],
+                              outputRange: [0.8, 1],
+                            }),
+                          },
+                        ],
                         opacity: pulseAnim.interpolate({
                           inputRange: [1, 1.08],
                           outputRange: [0.3, 0.6],
-                        })
-                      }
-                    ]} 
+                        }),
+                      },
+                    ]}
                   />
                 </View>
-              </View>
+              </Animated.View>
             ))}
           </View>
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 };
@@ -241,7 +485,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  
+
   // Premium Background System
   backgroundContainer: {
     position: 'absolute',
@@ -351,10 +595,29 @@ const styles = StyleSheet.create({
     elevation: 20,
     borderWidth: 5,
     borderColor: colors.success,
-    zIndex: 4,
   },
   hubIcon: {
     fontSize: 48,
+  },
+
+  // Pulse Ring Effects
+  pulseRing1: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    borderWidth: 2,
+    borderColor: colors.success,
+    zIndex: 5,
+  },
+  pulseRing2: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: colors.success,
+    zIndex: 4,
   },
 
   // Connection Network
@@ -390,8 +653,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     zIndex: 2,
   },
-  
-  // Node Positions
+
+  // Node Positions (arranged in perfect pentagon with better spacing)
   node1: { top: 15, left: '50%', marginLeft: -30 },
   node2: { top: 70, right: 20 },
   node3: { bottom: 50, right: 33 },
@@ -459,7 +722,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: `${colors.border}15`,
   },
-  
+
   // Card Background System
   cardBackgroundSystem: {
     position: 'absolute',
@@ -484,7 +747,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 16,
   },
-  
+
   // Icon System - Compact Horizontal
   featureIconSection: {
     marginRight: 16,
@@ -517,7 +780,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     zIndex: 2,
   },
-  
+
   // Content System - Horizontal Compact
   featureContent: {
     flex: 1,
@@ -539,7 +802,7 @@ const styles = StyleSheet.create({
     lineHeight: fontSizes.sm * 1.2,
     opacity: 0.9,
   },
-  
+
   // Interactive Elements - Horizontal
   cardInteractiveElements: {
     position: 'absolute',

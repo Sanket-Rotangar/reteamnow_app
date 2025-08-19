@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -15,11 +15,13 @@ import ProgressRings from '../../components/ProgressRings';
 import {
   requestHealthPermissions,
   readSteps,
-  // readHeartRate,
+  readHeartRate,
   // readExerciseSessions, // Updated function import
-  // readActiveCaloriesBurned, // Updated function import
+  readActiveCaloriesBurned, // Updated function import
   checkAvailability,
+  readDistance,
 } from '../../services/healthConnectService';
+import Toast from 'react-native-toast-message';
 
 // Define the types for the props and state
 type DailyGoal = {
@@ -60,17 +62,17 @@ const DailyGoalItem: React.FC<{ goal: DailyGoal }> = ({ goal }) => (
 );
 const GoogleFit: React.FC = () => {
   const [steps, setSteps] = useState(0);
-  // const [heartRate, setHeartRate] = useState(0);
-  // const [distance, setDistance] = useState(0);
+  const [heartRate, setHeartRate] = useState(0);
+  const [distance, setDistance] = useState(0);
   // const [speed, setSpeed] = useState(0);
   // const [activeCalories, setActiveCalories] = useState(0); // Renamed state variable
   const [loading, setLoading] = useState(false);
   const [isAvailable, setIsAvailable] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Check for Health Connect availability
   useEffect(() => {
     const checkStatus = async () => {
-      // Check for Health Connect availability
       const available = await checkAvailability();
       setIsAvailable(available);
     };
@@ -87,29 +89,40 @@ const GoogleFit: React.FC = () => {
         endTime: new Date().toISOString(),
       };
 
-      // Steps
-      const stepsData = await readSteps(timeRange);
+      // fetching all parameters in parallel
+      const [stepsData, heartRateData, caloriesData, distanceData] =
+        await Promise.all([
+          readSteps(timeRange),
+          readHeartRate(timeRange),
+          readActiveCaloriesBurned(timeRange),
+          readDistance(timeRange),
+        ]);
+
       setSteps(
         (stepsData?.records ?? []).reduce((sum, cur) => sum + cur.count, 0),
       );
+      // Heart Rate (average)
+      const heartRates = (heartRateData?.records ?? []).map(r => r.bpm);
+      setHeartRate(heartRates.length ? 
+      (heartRates.reduce((a, b) => a + b, 0) / heartRates.length) : 0);
 
-      // Heart Rate
-      // const heartRateData = await readHeartRate(timeRange);
-      // setHeartRate(
-      //   (heartRateData?.records ?? []).reduce((sum, cur) => sum + cur.value, 0),
-      // );
+      // Distance (meters → km)
+    setDistance((distanceData?.records ?? []).reduce((sum, cur) => sum + cur.distance.inMeters, 0) / 1000);
 
-      // Exercise Sessions (distance & speed)
-      // const exerciseSessions = await readExerciseSessions(timeRange);
-      // setDistance((exerciseSessions?.records ?? []).reduce((sum, cur) => sum + (cur.distance?.value || 0), 0));
-      // setSpeed((exerciseSessions?.records ?? []).reduce((sum, cur) => sum + (cur.speed?.average || 0), 0));
+     // Calories
+    setActiveCalories((caloriesData?.records ?? []).reduce((sum, cur) => sum + cur.energy.inKcal, 0));
 
-      // Active Calories
-      // const activeCaloriesData = await readActiveCaloriesBurned(timeRange);
-      // setActiveCalories((activeCaloriesData?.records ?? []).reduce((sum, cur) => sum + cur.value, 0));
+    // Active Time (mins)
+    setActiveMinutes((exerciseData?.records ?? []).reduce((sum, cur) => sum + cur.activeDuration.totalMinutes, 0));
+      
     } catch (error) {
       console.error('Error fetching health data:', error);
-      Alert.alert('Error', 'Failed to fetch health data. Please try again.');
+      // Alert.alert('Error', 'Failed to fetch health data. Please try again.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to fetch health data. Please try again.',
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -125,17 +138,21 @@ const GoogleFit: React.FC = () => {
     }, 100);
   }, []);
 
-
   const handlePermissionRequest = async () => {
     const granted = await requestHealthPermissions();
     if (granted.length > 0) {
-      Alert.alert('Success', 'Permissions granted! Fetching data...');
+      Toast.show({
+        type: 'success',
+        text1: 'Permissions granted!',
+        text2: 'Fetching health data...',
+      });
       fetchHealthData(); // Call data fetch after permissions are granted
     } else {
-      Alert.alert(
-        'Permissions Denied',
-        'Unable to access health data without permissions.',
-      );
+      Toast.show({
+        type: 'error',
+        text1: 'Permissions Denied',
+        text2: 'Unable to access health data without permissions.',
+      });
     }
   };
 
@@ -166,7 +183,7 @@ const GoogleFit: React.FC = () => {
             <Text style={styles.screenTitle}>Fitness Tracker</Text>
             <Text style={styles.screenSubtitle}>Health & Activity</Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.profileButton}
             onPress={handlePermissionRequest}
           >
@@ -179,10 +196,10 @@ const GoogleFit: React.FC = () => {
           <View style={styles.overviewHeader}>
             <Text style={styles.overviewTitle}>Today's Activity</Text>
             <Text style={styles.overviewDate}>
-              {new Date().toLocaleDateString('en-US', { 
-                weekday: 'short', 
-                month: 'short', 
-                day: 'numeric' 
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
               })}
             </Text>
           </View>
@@ -194,12 +211,12 @@ const GoogleFit: React.FC = () => {
                 <View style={styles.valueLineRed} />
                 <View style={styles.valueContent}>
                   <Text style={styles.activityValueText}>
-                    {loading ? '...' : (Math.random() * 500 + 200).toFixed(0)}
+                    {loading ? '...' : heartRate.toLocaleString()}
                   </Text>
-                  <Text style={styles.activityCategoryText}>calories</Text>
+                  <Text style={styles.activityCategoryText}>Heart rate</Text>
                 </View>
               </View>
-              
+
               <View style={styles.valueRow}>
                 <View style={styles.valueLineGreen} />
                 <View style={styles.valueContent}>
@@ -209,7 +226,7 @@ const GoogleFit: React.FC = () => {
                   <Text style={styles.activityCategoryText}>exercise mins</Text>
                 </View>
               </View>
-              
+
               <View style={styles.valueRow}>
                 <View style={styles.valueLineBlue} />
                 <View style={styles.valueContent}>
@@ -222,7 +239,7 @@ const GoogleFit: React.FC = () => {
             </View>
 
             <View style={styles.progressRingsSection}>
-              <ProgressRings 
+              <ProgressRings
                 move={steps / 10000} // Assuming 10k steps goal
                 exercise={0.65} // Heart points progress
                 stand={0.85} // Move minutes progress

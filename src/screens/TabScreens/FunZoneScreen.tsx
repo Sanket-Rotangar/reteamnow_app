@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
+import { useNavigation } from '@react-navigation/native';
 
 // Mock data for leaderboard
 const leaderboardData = [
@@ -49,6 +50,7 @@ const upcomingEvents = [
 ];
 
 const FunZoneScreen = () => {
+  const navigation = useNavigation();
   const [selectedTab, setSelectedTab] = useState('ongoing');
 
   const showToast = (message: string) => {
@@ -57,6 +59,31 @@ const FunZoneScreen = () => {
       text1: 'Fun Zone',
       text2: message,
     });
+  };
+
+  const handleQuickAction = (actionType: string) => {
+    switch(actionType) {
+      case 'events':
+        // Navigate to Events list
+        if (navigation) {
+          navigation.navigate('EventsList');
+        } else {
+          showToast('Opening Event Photos! 📸');
+        }
+        break;
+      case 'create':
+        showToast('Opening Create Game! 🎮');
+        break;
+      case 'stats':
+        showToast('Opening My Stats! 📊');
+        break;
+      case 'team':
+        showToast('Opening Find Team! 👥');
+        break;
+      case 'rewards':
+        showToast('Opening Rewards! 🎁');
+        break;
+    }
   };
 
   const handleJoinGame = (gameTitle: string) => {
@@ -261,16 +288,16 @@ const FunZoneScreen = () => {
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.actionsGrid}>
             {[
-              { icon: 'add-circle', title: 'Create\nGame', color: '#007AFF' },
-              { icon: 'stats-chart', title: 'My Stats', color: '#34C759' },
-              { icon: 'people', title: 'Find\nTeam', color: '#FF3B30' },
-              { icon: 'gift', title: 'Rewards', color: '#AF52DE' },
+              { icon: 'camera', title: 'Event\nPhotos', color: '#FF3B30', action: 'events' },
+              { icon: 'add-circle', title: 'Create\nGame', color: '#007AFF', action: 'create' },
+              { icon: 'stats-chart', title: 'My Stats', color: '#34C759', action: 'stats' },
+              { icon: 'people', title: 'Find\nTeam', color: '#AF52DE', action: 'team' },
             ].map((action, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.actionCard}
                 activeOpacity={0.8}
-                onPress={() => showToast(`Opening ${action.title.replace('\n', ' ')}`)}>
+                onPress={() => handleQuickAction(action.action)}>
                 <View style={[styles.actionIcon, { backgroundColor: action.color }]}>
                   <Icon name={action.icon} size={18} color="#FFFFFF" />
                 </View>

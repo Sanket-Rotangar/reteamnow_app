@@ -17,7 +17,7 @@ import { StyleSheet, Text, View } from 'react-native';
 // Import screens according to requirements
 import HomeScreen from '../screens/TabScreens/HomeScreen';
 import AttendanceScreen from '../screens/TabScreens/AttendanceScreen';
-import FunZoneScreen from '../screens/TabScreens/FunZoneScreen';
+import FunZoneStack from '../navigation/FunZoneStack';
 import SettingsStack from '../navigation/SettingsStack';
 import GoogleFit from '../screens/TabScreens/GoogleFit';
 import colors from '../config/colors'
@@ -145,7 +145,7 @@ const BottomTabs = () => {
       {/* Fun Zone Tab - Employee engagement activities */}
       <Tab.Screen 
         name="FunZoneTab" 
-        component={FunZoneScreen}
+        component={FunZoneStack}
         options={{
           tabBarLabel: 'Fun Zone',
           tabBarAccessibilityLabel: 'Navigate to Fun Zone activities'

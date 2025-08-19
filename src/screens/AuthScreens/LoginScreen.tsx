@@ -79,6 +79,14 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  // Development helper function
+  const fillTestCredentials = () => {
+    setEmail('sanket10@example.com');
+    setPassword('Salsal');
+    setEmailError('');
+    setPasswordError('');
+  };
+
   const getInputStyle = (error: string, value: string) => {
     if (error) {
       return [styles.input, styles.inputError];
@@ -147,6 +155,14 @@ const LoginScreen = ({ navigation }) => {
               {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
             </View>
 
+            {/* Development Button - Remove after development */}
+            <TouchableOpacity 
+              style={styles.devButton}
+              onPress={fillTestCredentials}
+            >
+              <Text style={styles.devButtonText}>🚧 Fill Test Credentials (Dev)</Text>
+            </TouchableOpacity>
+
             {/* Forgot Password */}
             <TouchableOpacity style={styles.forgotPasswordContainer}>
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
@@ -169,13 +185,6 @@ const LoginScreen = ({ navigation }) => {
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
-
-            {/* Divider */}
-            {/* <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View> */}
 
             {/* Register Link */}
             <TouchableOpacity 
@@ -324,5 +333,22 @@ const styles = StyleSheet.create({
   registerLink: {
     color: colors.primary,
     fontWeight: fontWeights.semiBold,
+  },
+  // Development styles - Remove after development
+  devButton: {
+    backgroundColor: '#ffeb3b',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignSelf: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#f57f17',
+  },
+  devButtonText: {
+    fontSize: fontSizes.sm,
+    color: '#f57f17',
+    fontWeight: fontWeights.medium,
+    textAlign: 'center',
   },
 });
