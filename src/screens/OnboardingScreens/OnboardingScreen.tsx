@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
   Animated,
-  PanResponder,
+  FlatList,
 } from 'react-native';
 import { colors } from '../../config/colors';
 import { fontSizes, fontWeights } from '../../config/typography';
@@ -23,42 +23,34 @@ interface OnboardingScreenProps {
   navigation: any;
 }
 
+interface ScreenData {
+  id: number;
+  component: React.ComponentType<any>;
+  key: string;
+}
+
 const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollX = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const flatListRef = useRef<FlatList>(null);
 
-  const screens = [
-    { id: 1, component: WelcomeScreen },
-    { id: 2, component: FeaturesScreen },
-    { id: 3, component: FitnessScreen },
-    { id: 4, component: PrivacyScreen },
-  ];
+  // Memoized screens data to prevent re-creation
+  const screens = useMemo<ScreenData[]>(() => [
+    { id: 1, component: WelcomeScreen, key: 'welcome' },
+    { id: 2, component: FeaturesScreen, key: 'features' },
+    { id: 3, component: FitnessScreen, key: 'fitness' },
+    { id: 4, component: PrivacyScreen, key: 'privacy' },
+  ], []);
+
+  const isLastScreen = currentIndex === screens.length - 1;
 
   const handleNext = () => {
-    if (currentIndex < screens.length - 1) {
+    if (!isLastScreen) {
       const nextIndex = currentIndex + 1;
-      
-      // Smooth fade transition
-      Animated.sequence([
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scrollX, {
-          toValue: nextIndex * width,
-          duration: 0,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-      
-      setCurrentIndex(nextIndex);
+      flatListRef.current?.scrollToIndex({
+        index: nextIndex,
+        animated: true,
+      });
     } else {
       handleGetStarted();
     }
@@ -74,81 +66,69 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
     }
   };
 
-  const panResponder = PanResponder.create({
-    onMoveShouldSetPanResponder: (evt, gestureState) => {
-      return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 10;
-    },
-    onPanResponderGrant: () => {
-      scrollX.stopAnimation();
-      fadeAnim.stopAnimation();
-    },
-    onPanResponderMove: (evt, gestureState) => {
-      // Create smooth fade effect during swipe
-      const progress = Math.abs(gestureState.dx) / (width * 0.3);
-      const opacity = Math.max(0.3, 1 - Math.min(progress, 0.7));
-      fadeAnim.setValue(opacity);
-    },
-    onPanResponderRelease: (evt, gestureState) => {
-      const threshold = width * 0.2;
-      
-      if (gestureState.dx > threshold && currentIndex > 0) {
-        // Swipe right - go to previous
-        const prevIndex = currentIndex - 1;
-        Animated.sequence([
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 100,
-            useNativeDriver: true,
-          }),
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 150,
-            useNativeDriver: true,
-          }),
-        ]).start();
-        setCurrentIndex(prevIndex);
-      } else if (gestureState.dx < -threshold && currentIndex < screens.length - 1) {
-        // Swipe left - go to next
-        const nextIndex = currentIndex + 1;
-        Animated.sequence([
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 100,
-            useNativeDriver: true,
-          }),
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 150,
-            useNativeDriver: true,
-          }),
-        ]).start();
-        setCurrentIndex(nextIndex);
-      } else {
-        // Snap back to full opacity
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }).start();
-      }
-    },
-  });
+  // Handle viewable items change
+  const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
+    if (viewableItems.length > 0) {
+      const newIndex = viewableItems[0].index ?? 0;
+      setCurrentIndex(newIndex);
+    }
+  }, []);
+
+  // Scroll event handler
+  const onScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+    { useNativeDriver: false }
+  );
+
+  // Memoized screen renderer
+  const renderScreen = useCallback(({ item }: { item: ScreenData }) => {
+    const Component = item.component;
+    return (
+      <View style={styles.screen}>
+        <Component />
+      </View>
+    );
+  }, []);
+
+  // Get item layout for better performance
+  const getItemLayout = useCallback((_: any, index: number) => ({
+    length: width,
+    offset: width * index,
+    index,
+  }), []);
+
+  // Viewability config
+  const viewabilityConfig = useMemo(() => ({
+    itemVisiblePercentThreshold: 50,
+  }), []);
 
   const renderDots = () => {
     return (
       <View style={styles.dotsContainer}>
         {screens.map((_, index) => {
-          const isActive = index === currentIndex;
+          const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
           
+          const scale = scrollX.interpolate({
+            inputRange,
+            outputRange: [0.8, 1.2, 0.8],
+            extrapolate: 'clamp',
+          });
+
+          const opacity = scrollX.interpolate({
+            inputRange,
+            outputRange: [0.4, 1, 0.4],
+            extrapolate: 'clamp',
+          });
+
           return (
-            <View
+            <Animated.View
               key={index}
               style={[
                 styles.dot,
-                isActive && styles.activeDot,
-                !isActive && styles.inactiveDot,
                 {
-                  transform: [{ scale: isActive ? 1.2 : 0.8 }],
+                  transform: [{ scale }],
+                  opacity,
+                  backgroundColor: index === currentIndex ? colors.primary : `${colors.primary}40`,
                 },
               ]}
             />
@@ -158,26 +138,32 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
     );
   };
 
-  const isLastScreen = currentIndex === screens.length - 1;
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       
-      <View style={styles.screenContainer} {...panResponder.panHandlers}>
-        <Animated.View
-          style={[
-            styles.screensWrapper,
-            {
-              opacity: fadeAnim,
-            },
-          ]}
-        >
-          <View key={screens[currentIndex].id} style={styles.screen}>
-            {React.createElement(screens[currentIndex].component)}
-          </View>
-        </Animated.View>
-      </View>
+      {/* Optimized FlatList for smooth scrolling */}
+      <FlatList
+        ref={flatListRef}
+        data={screens}
+        renderItem={renderScreen}
+        keyExtractor={(item) => item.key}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={onScroll}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        getItemLayout={getItemLayout}
+        scrollEventThrottle={16}
+        decelerationRate="fast"
+        bounces={false}
+        removeClippedSubviews={false}
+        initialNumToRender={4}
+        maxToRenderPerBatch={4}
+        windowSize={4}
+        style={styles.flatList}
+      />
 
       {/* Skip Button - Top Right */}
       {!isLastScreen && (
@@ -192,7 +178,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
         </View>
       )}
 
-      {/* Floating Dots Indicator */}
+      {/* Floating Dots Indicator with Smooth Animation */}
       <View style={styles.floatingDotsContainer}>
         <View style={styles.dotsWrapper}>
           {renderDots()}
@@ -226,21 +212,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  screenContainer: {
+  flatList: {
     flex: 1,
-    overflow: 'hidden',
-  },
-  screensWrapper: {
-    flexDirection: 'row',
-    width: width * 4, // 4 screens
-    height: '100%',
   },
   screen: {
     width: width,
     height: '100%',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingBottom: 140, // Reduced space for floating elements
+    paddingBottom: 140, // Space for floating elements
   },
   
   // Skip Button Container - Top Right
@@ -269,7 +249,7 @@ const styles = StyleSheet.create({
     fontWeight: fontWeights.medium,
   },
   
-  // Floating Dots Container
+  // Floating Dots Container with Smooth Animation
   floatingDotsContainer: {
     position: 'absolute',
     bottom: 5,
@@ -277,11 +257,12 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     zIndex: 10,
+
   },
   dotsWrapper: {
-     backgroundColor: `${colors.surface}00`,
+    backgroundColor: `${colors.surface}00`,
     paddingHorizontal: 20,
-    paddingVertical: 5,
+    paddingVertical: 8,
     borderRadius: 25,
   },
   dotsContainer: {
@@ -290,33 +271,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 6,
+    width: 10,
+    height: 5,
+    borderRadius: 4,
+    marginHorizontal: 4,
     backgroundColor: colors.primary,
-    marginHorizontal: 4,
-  },
-  activeDot: {
-    width: 12,
-    height: 8,
-    borderRadius: 6,
-    backgroundColor: colors.primary,
-    marginHorizontal: 4,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  inactiveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 6,
-    backgroundColor: `${colors.primary}40`,
-    marginHorizontal: 4,
   },
   
-  // Floating Button Container - No White Background
+  // Floating Button Container
   floatingButtonContainer: {
     position: 'absolute',
     bottom: 30,
