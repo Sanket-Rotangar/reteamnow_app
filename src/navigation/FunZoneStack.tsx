@@ -11,9 +11,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import FunZoneScreen from '../screens/TabScreens/FunZoneScreen';
-import EventsListScreen from '../screens/StackScreens/EventsListScreen';
-import EventPhotosScreen from '../screens/StackScreens/EventPhotosScreen';
-import AdminEventCreation from '../screens/StackScreens/AdminEventCreation';
+import EventsListScreen from '../screens/FunZoneScreens/EventsListScreen';
+import EventPhotosScreen from '../screens/FunZoneScreens/EventPhotosScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -45,14 +44,6 @@ export default function FunZoneStack() {
         component={EventPhotosScreen}
         options={{ 
           title: 'Photo Competition',
-          headerShown: false 
-        }}
-      />
-      <Stack.Screen
-        name="AdminEventCreation"
-        component={AdminEventCreation}
-        options={{ 
-          title: 'Create Event',
           headerShown: false 
         }}
       />

@@ -1,40 +1,37 @@
 import {
+  initialize,
   requestPermission,
-  readRecords,
+  aggregateRecord,
   getSdkStatus,
   SdkAvailabilityStatus,
   openHealthConnectSettings,
 } from 'react-native-health-connect';
 
 // Permissions based on current AndroidManifest.xml
-// If a recordType is not accessible right now (missing in manifest), keep it commented out for future use
 const PERMISSIONS = [
-  // ✅ Available now
-  { accessType: 'read', recordType: 'Steps' },
-  { accessType: 'write', recordType: 'Steps' },
-
-  { accessType: 'read', recordType: 'HeartRate' },
-  { accessType: 'write', recordType: 'HeartRate' },
-
-  { accessType: 'read', recordType: 'Distance' },
-  { accessType: 'write', recordType: 'Distance' },
-
-  { accessType: 'read', recordType: 'Height' },
-  { accessType: 'write', recordType: 'Height' },
-
-  { accessType: 'read', recordType: 'Weight' },
-  { accessType: 'write', recordType: 'Weight' },
-
-  { accessType: 'read', recordType: 'Speed' },
-  { accessType: 'write', recordType: 'Speed' },
-
-  { accessType: 'read', recordType: 'TotalCaloriesBurned' },
-  { accessType: 'write', recordType: 'TotalCaloriesBurned' },
-
-  // ⏳ Not available yet — manifest permissions missing
-  // { accessType: 'read', recordType: 'ExerciseSession' },
-  // { accessType: 'read', recordType: 'ActiveCaloriesBurned' },
+  { accessType: 'read' as const, recordType: 'Steps' as const },
+  { accessType: 'read' as const, recordType: 'HeartRate' as const },
+  { accessType: 'read' as const, recordType: 'Distance' as const },
+  { accessType: 'read' as const, recordType: 'TotalCaloriesBurned' as const },
+  { accessType: 'read' as const, recordType: 'Height' as const },
+  { accessType: 'write' as const, recordType: 'Height' as const },
+  { accessType: 'read' as const, recordType: 'Weight' as const },
+  { accessType: 'write' as const, recordType: 'Weight' as const },
 ];
+
+// Initialize Health Connect
+export const initializeHealthConnect = async () => {
+  try {
+    const isInitialized = await initialize();
+    if (!isInitialized) {
+      throw new Error('Failed to initialize Health Connect');
+    }
+    return true;
+  } catch (error) {
+    console.error('Error initializing Health Connect:', error);
+    return false;
+  }
+};
 
 // Function to request permissions from the user
 export const requestHealthPermissions = async () => {
@@ -54,115 +51,103 @@ export const checkAvailability = async () => {
     status === SdkAvailabilityStatus.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED
   ) {
     await openHealthConnectSettings();
+    return false;
   }
   return status === SdkAvailabilityStatus.SDK_AVAILABLE;
 };
 
-// Function to read step data
-export const readSteps = async timeRange => {
+/**
+ * 📌 Steps — total step count in the given time range
+ */
+export const readSteps = async (startTime: string, endTime: string) => {
   try {
-    const records = await readRecords('Steps', { timeRangeFilter: timeRange });
-    return records ?? [];
-  } catch (error) {
-    console.error('Error reading steps data:', error);
-    return [];
-  }
-};
-
-// Function to read heart rate data
-export const readHeartRate = async timeRange => {
-  try {
-    const records = await readRecords('HeartRate', {
-      timeRangeFilter: timeRange,
+    const result = await aggregateRecord({
+      recordType: 'Steps',
+      timeRangeFilter: {
+        operator: 'between',
+        startTime,
+        endTime,
+      },
     });
-    return records ?? [];
+
+    // Extract steps count from COUNT_TOTAL
+    const stepsCount = (result as any)?.COUNT_TOTAL || 0;
+    return stepsCount;
   } catch (error) {
-    console.error('Error reading heart rate data:', error);
-    return [];
+    console.error('Error aggregating steps data:', error);
+    return 0;
   }
 };
 
-// Function to read distance data
-export const readDistance = async timeRange => {
+/**
+ * 📌 Heart Rate — average bpm in the given time range
+ */
+export const readHeartRate = async (startTime: string, endTime: string) => {
   try {
-    const records = await readRecords('Distance', {
-      timeRangeFilter: timeRange,
+    const result = await aggregateRecord({
+      recordType: 'HeartRate',
+      timeRangeFilter: {
+        operator: 'between',
+        startTime,
+        endTime,
+      },
     });
-    return records ?? [];
+
+    // Extract average heart rate from BPM_AVG
+    const avgHeartRate = (result as any)?.BPM_AVG || 75;
+    return avgHeartRate;
   } catch (error) {
-    console.error('Error reading distance data:', error);
-    return [];
+    console.error('Error aggregating heart rate data:', error);
+    return 0;
   }
 };
 
-// Function to read height data
-export const readHeight = async timeRange => {
+/**
+ * 📌 Calories — total calories burned in the given time range
+ */
+export const readTotalCaloriesBurned = async (
+  startTime: string,
+  endTime: string,
+) => {
   try {
-    const records = await readRecords('Height', { timeRangeFilter: timeRange });
-    return records ?? [];
-  } catch (error) {
-    console.error('Error reading height data:', error);
-    return [];
-  }
-};
-
-// Function to read weight data
-export const readWeight = async timeRange => {
-  try {
-    const records = await readRecords('Weight', { timeRangeFilter: timeRange });
-    return records ?? [];
-  } catch (error) {
-    console.error('Error reading weight data:', error);
-    return [];
-  }
-};
-
-// Function to read speed data
-export const readSpeed = async timeRange => {
-  try {
-    const records = await readRecords('Speed', { timeRangeFilter: timeRange });
-    return records ?? [];
-  } catch (error) {
-    console.error('Error reading speed data:', error);
-    return [];
-  }
-};
-
-// Function to read total calories burned data
-export const readTotalCaloriesBurned = async timeRange => {
-  try {
-    const records = await readRecords('TotalCaloriesBurned', {
-      timeRangeFilter: timeRange,
+    const result = await aggregateRecord({
+      recordType: 'TotalCaloriesBurned',
+      timeRangeFilter: {
+        operator: 'between',
+        startTime,
+        endTime,
+      },
     });
-    return records ?? [];
+
+    // Extract calories from ENERGY_TOTAL.inKilocalories
+    const totalCalories = (result as any)?.ENERGY_TOTAL?.inKilocalories || 0;
+    const roundedCalories = Math.round(totalCalories);
+    return roundedCalories; // Round to whole number
   } catch (error) {
-    console.error('Error reading total calories burned data:', error);
-    return [];
+    console.error('Error aggregating total calories data:', error);
+    return 0;
   }
 };
 
-// Function to read exercise sessions (future use)
-export const readExerciseSessions = async timeRange => {
+/**
+ * 📌 Distance — total distance in the given time range
+ */
+export const readDistance = async (startTime: string, endTime: string) => {
   try {
-    const records = await readRecords('ExerciseSession', {
-      timeRangeFilter: timeRange,
+    const result = await aggregateRecord({
+      recordType: 'Distance',
+      timeRangeFilter: {
+        operator: 'between',
+        startTime,
+        endTime,
+      },
     });
-    return records ?? [];
-  } catch (error) {
-    console.error('Error reading exercise session data:', error);
-    return [];
-  }
-};
 
-// Function to read active calories burned (future use)
-export const readActiveCaloriesBurned = async timeRange => {
-  try {
-    const records = await readRecords('ActiveCaloriesBurned', {
-      timeRangeFilter: timeRange,
-    });
-    return records ?? [];
+    // Extract distance from DISTANCE_TOTAL
+    const totalDistance = (result as any)?.DISTANCE.inKilometers || 0;
+    return totalDistance;
   } catch (error) {
-    console.error('Error reading active calories burned data:', error);
-    return [];
+    console.error('Error aggregating distance data:', error);
+    return 0;
   }
 };

@@ -6,7 +6,7 @@
  * Balance between dashboard functionality and good UI design
  */
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -21,6 +21,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 // import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import ProgressRings from '../../components/ProgressRings';
+import { AuthContext } from '../../context/authContext';
 
 // Enhanced data structure for the analytics cards
 const cardsData = [
@@ -31,6 +32,7 @@ const cardsData = [
 ];
 
 const HomeScreen = () => {
+  var { userInfo } = useContext(AuthContext);
   // const navigation = useNavigation();
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
@@ -100,7 +102,7 @@ const HomeScreen = () => {
                 move={0.75}
                 exercise={0.65} 
                 stand={0.85}
-                size={140}
+                size={160}
               />
             </View>
           </View>
@@ -191,7 +193,7 @@ const HomeScreen = () => {
           />
           <View style={styles.welcomeSection}>
             <Text style={styles.greeting}>Good morning</Text>
-            <Text style={styles.userName}>Alex</Text>
+            <Text style={styles.userName}>Sanket</Text>
           </View>
         </View>
         <TouchableOpacity
@@ -319,8 +321,8 @@ const styles = StyleSheet.create({
   },
 
   userName: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: '700',
     color: '#1D1D1F', // Strong primary text
     fontFamily: 'SF Pro Display', // Professional font
   },

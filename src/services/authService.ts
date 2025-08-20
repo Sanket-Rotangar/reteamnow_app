@@ -1,7 +1,7 @@
 // src/services/authService.ts
 import axios from 'axios';
 
-export const API_BASE_URL = 'http://10.0.0.87:8062/api';
+export const API_BASE_URL = 'https://app-backend-production-31a4.up.railway.app/api';
 
 export const registerUser = async (
   fname: string,

@@ -38,9 +38,9 @@ const ProgressRings: React.FC<ProgressRingsProps> = ({ move, exercise, stand, si
   const circumference = 2 * Math.PI * radius;
 
   // Max values for each ring
-  const maxMove = 2500;      // calories
-  const maxExercise = 1300;   // minutes
-  const maxStand = 120;      // hours
+  const maxMove = 200;      // heart rate
+  const maxExercise = 5500;   // steps count
+  const maxStand = 2500;      // calories burnt
 
   // Shared values
   const moveProgress = useSharedValue(0);

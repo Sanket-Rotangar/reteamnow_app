@@ -16,3 +16,33 @@
         "dottedLineManager": null
     }
 }
+
+create-user response
+{
+    "msg": "User created and reset email sent!",
+    "user": {
+        "fname": "Sanket",
+        "lname": "Dev11",
+        "username": "sanketdev11",
+        "password": "$2b$10$/ewVfrMR73mCDFcuAxxbxuIp2KaSd/Q/wsfJeEH0NS5IrRZ3vEi8e",
+        "email": "sanket11@example.com",
+        "status": "inactive",
+        "role": "user",
+        "teamTitle": [],
+        "workspaceName": [],
+        "userLogo": " ",
+        "jobRole": "",
+        "isAttending": false,
+        "imported": false,
+        "directManager": null,
+        "dottedLineManager": null,
+        "complianceAttempts": {},
+        "_id": "68a6077f242589b4cf26b6ad",
+        "createdAt": "2025-08-20T17:35:59.408Z",
+        "updatedAt": "2025-08-20T17:35:59.656Z",
+        "__v": 0,
+        "resetPasswordToken": "f397b3d6c54c4603f12aeeb880506bd6f951a6d6eb7603ce92fee8a8ab413e71",
+        "resetPasswordExpire": "2025-08-20T18:35:59.654Z",
+        "resetTokenRaw": "37064a278112824ad8e4b5785f0829c6e1ec7e94"
+    }
+}

@@ -1,6 +1,5 @@
 /**
  * Events List Screen - Browse and Access Event Photo Competitions
- *
  * Following the same design principles as other screens
  * Features: List of active events, navigation to event details
  * Role-based access: All users can view and participate in events
@@ -19,6 +18,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
+import { getAllEvents } from '../../services/eventService';
 
 // Types
 interface Event {
@@ -49,87 +49,31 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'active' | 'completed' | 'all'>('active');
+  const [activeFilter, setActiveFilter] = useState<
+    'active' | 'completed' | 'all'
+  >('active');
 
   // Fetch events from API
   const fetchEvents = useCallback(async () => {
     try {
-      // Replace with your actual API endpoint
-      // const response = await fetch(`/api/event-photos?status=${activeFilter}`, {
-      //   headers: {
-      //     'Authorization': `Bearer ${await getAuthToken()}`,
-      //   },
-      // });
-
-      // if (response.ok) {
-      //   const data = await response.json();
-      //   setEvents(data.data);
-      // } else {
-      //   throw new Error('Failed to fetch events');
-      // }
-
-      // Mock data for development
-      const mockEvents: Event[] = [
-        {
-          _id: '1',
-          title: 'Company Annual Picnic 2025',
-          description: 'Join us for our annual company picnic! Capture and share your favorite moments from the day.',
-          location: 'Central Park Pavilion',
-          status: 'active',
-          createdAt: '2025-08-15T10:00:00Z',
-          userAssigned: [],
-          sessions: [
-            {
-              title: 'Picnic Activities',
-              startTime: '2025-08-25T10:00:00Z',
-              endTime: '2025-08-25T16:00:00Z',
-            }
-          ]
-        },
-        {
-          _id: '2',
-          title: 'Team Building Workshop',
-          description: 'Interactive team building activities and photo challenges to strengthen our bonds.',
-          location: 'Conference Center A',
-          status: 'active',
-          createdAt: '2025-08-12T14:30:00Z',
-          userAssigned: [],
-          sessions: [
-            {
-              title: 'Workshop Session',
-              startTime: '2025-08-22T09:00:00Z',
-              endTime: '2025-08-22T17:00:00Z',
-            }
-          ]
-        },
-        {
-          _id: '3',
-          title: 'Innovation Showcase 2025',
-          description: 'Showcase your innovative projects and capture the innovation in action!',
-          location: 'Main Auditorium',
-          status: 'completed',
-          createdAt: '2025-08-05T09:00:00Z',
-          userAssigned: [],
-          sessions: []
-        }
-      ];
-
-      // For development, use mock data
-      const filteredEvents = activeFilter === 'all' 
-        ? mockEvents 
-        : mockEvents.filter(event => event.status === activeFilter);
+      setLoading(true);
       
-      setEvents(filteredEvents);
+      // Use the event service to fetch events
+      const apiEvents = await getAllEvents(
+        activeFilter === 'all' ? undefined : activeFilter,
+      );
+      
+      // Ensure we have an array
+      const eventsArray = Array.isArray(apiEvents) ? apiEvents : [];
+      setEvents(eventsArray);
     } catch (error) {
       console.error('Fetch events error:', error);
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Failed to load events',
+        text2: 'Failed to load events. Please check your connection.',
       });
-      
-      // Fallback to empty array
-      setEvents([]);
+
     } finally {
       setLoading(false);
     }
@@ -154,19 +98,27 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return '#34C759';
-      case 'completed': return '#8E8E93';
-      case 'cancelled': return '#FF3B30';
-      default: return '#8E8E93';
+      case 'active':
+        return '#34C759';
+      case 'completed':
+        return '#8E8E93';
+      case 'cancelled':
+        return '#FF3B30';
+      default:
+        return '#8E8E93';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'active': return 'Active';
-      case 'completed': return 'Completed';
-      case 'cancelled': return 'Cancelled';
-      default: return status;
+      case 'active':
+        return 'Active';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
     }
   };
 
@@ -184,14 +136,21 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
       key={event._id}
       style={styles.eventCard}
       activeOpacity={0.8}
-      onPress={() => handleEventPress(event)}>
-      
+      onPress={() => handleEventPress(event)}
+    >
       <View style={styles.eventHeader}>
         <View style={styles.eventTitleSection}>
           <Text style={styles.eventTitle}>{event.title}</Text>
           <View style={styles.eventMeta}>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(event.status) }]}>
-              <Text style={styles.statusText}>{getStatusText(event.status)}</Text>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: getStatusColor(event.status) },
+              ]}
+            >
+              <Text style={styles.statusText}>
+                {getStatusText(event.status)}
+              </Text>
             </View>
             <Text style={styles.eventDate}>{formatDate(event.createdAt)}</Text>
           </View>
@@ -240,7 +199,8 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}>
+          onPress={() => navigation.goBack()}
+        >
           <Icon name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
@@ -254,15 +214,21 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
 
       {/* Filter Tabs */}
       <View style={styles.filterContainer}>
-        {(['active', 'completed', 'all'] as const).map((filter) => (
+        {(['active', 'completed', 'all'] as const).map(filter => (
           <TouchableOpacity
             key={filter}
-            style={[styles.filterTab, activeFilter === filter && styles.activeFilterTab]}
-            onPress={() => setActiveFilter(filter)}>
-            <Text style={[
-              styles.filterTabText,
-              activeFilter === filter && styles.activeFilterTabText
-            ]}>
+            style={[
+              styles.filterTab,
+              activeFilter === filter && styles.activeFilterTab,
+            ]}
+            onPress={() => setActiveFilter(filter)}
+          >
+            <Text
+              style={[
+                styles.filterTabText,
+                activeFilter === filter && styles.activeFilterTabText,
+              ]}
+            >
               {filter.charAt(0).toUpperCase() + filter.slice(1)}
             </Text>
           </TouchableOpacity>
@@ -275,17 +241,16 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-
+        }
+      >
         {events.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Icon name="calendar-outline" size={48} color="#8E8E93" />
             <Text style={styles.emptyTitle}>No Events Found</Text>
             <Text style={styles.emptySubtitle}>
-              {activeFilter === 'active' 
+              {activeFilter === 'active'
                 ? 'No active events at the moment'
-                : `No ${activeFilter} events found`
-              }
+                : `No ${activeFilter} events found`}
             </Text>
           </View>
         ) : (
@@ -300,8 +265,9 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
             <Icon name="camera" size={32} color="#007AFF" />
             <Text style={styles.infoTitle}>How it works</Text>
             <Text style={styles.infoText}>
-              Participate in photo competitions by uploading event photos. 
-              Get likes and reactions from colleagues, and compete on the leaderboard!
+              Participate in photo competitions by uploading event photos. Get
+              likes and reactions from colleagues, and compete on the
+              leaderboard!
             </Text>
           </View>
         </View>

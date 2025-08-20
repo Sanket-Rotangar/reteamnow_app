@@ -19,7 +19,7 @@ import HomeScreen from '../screens/TabScreens/HomeScreen';
 import AttendanceScreen from '../screens/TabScreens/AttendanceScreen';
 import FunZoneStack from '../navigation/FunZoneStack';
 import SettingsStack from '../navigation/SettingsStack';
-import GoogleFit from '../screens/TabScreens/GoogleFit';
+import HealthStack from './HealthStack';
 import colors from '../config/colors'
 const Tab = createBottomTabNavigator();
 
@@ -132,10 +132,10 @@ const BottomTabs = () => {
         }}
       />
       
-      {/* Fun Zone Tab - Employee engagement activities */}
+      {/* Health Tab - Fitness tracking */}
       <Tab.Screen 
         name="HealthTab" 
-        component={GoogleFit}
+        component={HealthStack}
         options={{
           tabBarLabel: 'Health',
           tabBarAccessibilityLabel: 'Navigate to Fitness tracking'

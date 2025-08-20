@@ -7,18 +7,17 @@ import {
   TouchableOpacity,
   ScrollView,
   Button,
-  Alert,
   RefreshControl,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { BarChart } from 'react-native-gifted-charts';
 import ProgressRings from '../../components/ProgressRings';
 import {
   requestHealthPermissions,
+  checkAvailability,
   readSteps,
   readHeartRate,
-  // readExerciseSessions, // Updated function import
-  readActiveCaloriesBurned, // Updated function import
-  checkAvailability,
+  readTotalCaloriesBurned,
   readDistance,
 } from '../../services/healthConnectService';
 import Toast from 'react-native-toast-message';
@@ -28,17 +27,6 @@ type DailyGoal = {
   day: string;
   achieved: boolean;
 };
-
-// Dummy data to populate the UI
-const dailyGoalsData: DailyGoal[] = [
-  { day: 'S', achieved: true },
-  { day: 'M', achieved: false },
-  { day: 'T', achieved: false },
-  { day: 'W', achieved: true },
-  { day: 'T', achieved: false },
-  { day: 'F', achieved: true },
-  { day: 'S', achieved: false },
-];
 
 // A functional component for a single daily goal item
 const DailyGoalItem: React.FC<{ goal: DailyGoal }> = ({ goal }) => (
@@ -60,64 +48,146 @@ const DailyGoalItem: React.FC<{ goal: DailyGoal }> = ({ goal }) => (
     </View>
   </View>
 );
-const GoogleFit: React.FC = () => {
+
+// New reusable component for displaying a single activity value
+const ActivityValue: React.FC<{
+  color: string;
+  loading: boolean;
+  value: number;
+  label: string;
+  unit?: string;
+}> = ({ color, loading, value, label, unit }) => (
+  <View style={styles.valueRow}>
+    <View style={[styles.valueLine, { backgroundColor: color }]} />
+    <View style={styles.valueContent}>
+      <Text style={styles.activityValueText}>
+        {loading ? '...' : value.toLocaleString() || '0'}{' '}
+        {unit && <Text style={styles.screenSubtitle}>{unit}</Text>}
+      </Text>
+      <Text style={styles.activityCategoryText}>{label}</Text>
+    </View>
+  </View>
+);
+
+// New reusable component for a chart card
+const ModernChartCard: React.FC<{
+  title: string;
+  subtitle: string;
+  value: number;
+  valueColor: string;
+  onPress: () => void;
+  chartData: any[];
+  chartMaxValue: number;
+}> = ({
+  title,
+  subtitle,
+  value,
+  valueColor,
+  onPress,
+  chartData,
+  chartMaxValue,
+}) => (
+  <View style={styles.modernChartCard}>
+    <TouchableOpacity style={styles.modernCardHeader} onPress={onPress}>
+      <View>
+        <Text style={styles.modernCardTitle}>{title}</Text>
+        <Text style={styles.modernCardSubtitle}>{subtitle}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+    </TouchableOpacity>
+    <View style={styles.modernChartContainer}>
+      <View style={styles.modernValueSection}>
+        <Text style={[styles.modernMainValue, { color: valueColor }]}>
+          {value.toLocaleString() || '0'}
+        </Text>
+        <Text style={[styles.modernValueLabel, { color: valueColor }]}>
+          points today
+        </Text>
+      </View>
+      <View style={styles.modernChartSection}>
+        <BarChart
+          data={chartData}
+          height={60}
+          barWidth={10}
+          spacing={5}
+          roundedTop
+          hideAxesAndRules
+          frontColor={valueColor}
+          maxValue={chartMaxValue}
+          disableScroll={true}
+        />
+      </View>
+    </View>
+  </View>
+);
+
+// Centralized data generation function
+const generateChartData = (
+  days: string[],
+  valueGenerator: () => number,
+  frontColor: string
+) => {
+  return days.map((day) => ({
+    label: day,
+    value: valueGenerator(),
+    frontColor: frontColor,
+  }));
+};
+
+// Dummy data for charts (last 7 days)
+const days = ['T', 'F', 'S', 'S', 'M', 'T', 'W'];
+const dailyGoalsData: DailyGoal[] = [
+  { day: 'S', achieved: true },
+  { day: 'M', achieved: false },
+  { day: 'T', achieved: false },
+  { day: 'W', achieved: true },
+  { day: 'T', achieved: false },
+  { day: 'F', achieved: true },
+  { day: 'S', achieved: false },
+];
+
+// --- Main Component ---
+const GoogleFit: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [steps, setSteps] = useState(0);
   const [heartRate, setHeartRate] = useState(0);
   const [distance, setDistance] = useState(0);
-  // const [speed, setSpeed] = useState(0);
-  // const [activeCalories, setActiveCalories] = useState(0); // Renamed state variable
+  const [calories, setCalories] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isAvailable, setIsAvailable] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Check for Health Connect availability
+  // Check for Health Connect availability and fetch data
   useEffect(() => {
     const checkStatus = async () => {
       const available = await checkAvailability();
       setIsAvailable(available);
+      if (available) {
+        fetchHealthData();
+      }
     };
     checkStatus();
   }, []);
 
-  // Function to fetch health data
   const fetchHealthData = async () => {
     setLoading(true);
     try {
-      const timeRange = {
-        operator: 'between',
-        startTime: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
-        endTime: new Date().toISOString(),
-      };
+      const startTime = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+      const endTime = new Date().toISOString();
 
-      // fetching all parameters in parallel
-      const [stepsData, heartRateData, caloriesData, distanceData] =
+      const [stepsTotal, heartRateAvg, caloriesTotal, distanceTotal] =
         await Promise.all([
-          readSteps(timeRange),
-          readHeartRate(timeRange),
-          readActiveCaloriesBurned(timeRange),
-          readDistance(timeRange),
+          readSteps(startTime, endTime),
+          readHeartRate(startTime, endTime),
+          readTotalCaloriesBurned(startTime, endTime),
+          readDistance(startTime, endTime),
         ]);
 
-      setSteps(
-        (stepsData?.records ?? []).reduce((sum, cur) => sum + cur.count, 0),
-      );
-      // Heart Rate (average)
-      const heartRates = (heartRateData?.records ?? []).map(r => r.bpm);
-      setHeartRate(heartRates.length ? 
-      (heartRates.reduce((a, b) => a + b, 0) / heartRates.length) : 0);
-
-      // Distance (meters → km)
-    setDistance((distanceData?.records ?? []).reduce((sum, cur) => sum + cur.distance.inMeters, 0) / 1000);
-
-     // Calories
-    setActiveCalories((caloriesData?.records ?? []).reduce((sum, cur) => sum + cur.energy.inKcal, 0));
-
-    // Active Time (mins)
-    setActiveMinutes((exerciseData?.records ?? []).reduce((sum, cur) => sum + cur.activeDuration.totalMinutes, 0));
-      
+      setSteps(stepsTotal);
+      setHeartRate(heartRateAvg);
+      setCalories(caloriesTotal);
+      setDistance(distanceTotal);
     } catch (error) {
       console.error('Error fetching health data:', error);
-      // Alert.alert('Error', 'Failed to fetch health data. Please try again.');
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -132,10 +202,6 @@ const GoogleFit: React.FC = () => {
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchHealthData();
-
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 100);
   }, []);
 
   const handlePermissionRequest = async () => {
@@ -146,7 +212,7 @@ const GoogleFit: React.FC = () => {
         text1: 'Permissions granted!',
         text2: 'Fetching health data...',
       });
-      fetchHealthData(); // Call data fetch after permissions are granted
+      fetchHealthData();
     } else {
       Toast.show({
         type: 'error',
@@ -165,6 +231,7 @@ const GoogleFit: React.FC = () => {
       </View>
     );
   }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -172,8 +239,7 @@ const GoogleFit: React.FC = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            progressViewOffset={20} // lowers where the spinner appears
-            // distanceToRefresh={30} // only works with some RN versions
+            progressViewOffset={20}
           />
         }
       >
@@ -191,7 +257,7 @@ const GoogleFit: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Today's Activity Card with New Layout */}
+        {/* Today's Activity Card */}
         <View style={styles.overviewCard}>
           <View style={styles.overviewHeader}>
             <Text style={styles.overviewTitle}>Today's Activity</Text>
@@ -203,47 +269,35 @@ const GoogleFit: React.FC = () => {
               })}
             </Text>
           </View>
-
-          {/* Progress Section with Values on Left and Rings on Right */}
           <View style={styles.activityLayoutContainer}>
             <View style={styles.activityValuesSection}>
-              <View style={styles.valueRow}>
-                <View style={styles.valueLineRed} />
-                <View style={styles.valueContent}>
-                  <Text style={styles.activityValueText}>
-                    {loading ? '...' : heartRate.toLocaleString()}
-                  </Text>
-                  <Text style={styles.activityCategoryText}>Heart rate</Text>
-                </View>
-              </View>
-
-              <View style={styles.valueRow}>
-                <View style={styles.valueLineGreen} />
-                <View style={styles.valueContent}>
-                  <Text style={styles.activityValueText}>
-                    {loading ? '...' : (Math.random() * 60 + 30).toFixed(0)}
-                  </Text>
-                  <Text style={styles.activityCategoryText}>exercise mins</Text>
-                </View>
-              </View>
-
-              <View style={styles.valueRow}>
-                <View style={styles.valueLineBlue} />
-                <View style={styles.valueContent}>
-                  <Text style={styles.activityValueText}>
-                    {loading ? '...' : (Math.random() * 12 + 6).toFixed(0)}
-                  </Text>
-                  <Text style={styles.activityCategoryText}>stand hours</Text>
-                </View>
-              </View>
+              <ActivityValue
+                color="#FF3B30"
+                loading={loading}
+                value={heartRate}
+                label="Heart rate"
+                unit="bpm"
+              />
+              <ActivityValue
+                color="#30D158"
+                loading={loading}
+                value={steps}
+                label="Steps"
+              />
+              <ActivityValue
+                color="#007AFF"
+                loading={loading}
+                value={calories}
+                label="Calories burnt"
+                unit="kcal"
+              />
             </View>
-
             <View style={styles.progressRingsSection}>
               <ProgressRings
-                move={steps / 10000} // Assuming 10k steps goal
-                exercise={0.65} // Heart points progress
-                stand={0.85} // Move minutes progress
-                size={120}
+                move={heartRate}
+                exercise={steps}
+                stand={calories}
+                size={150}
               />
             </View>
           </View>
@@ -252,17 +306,16 @@ const GoogleFit: React.FC = () => {
         {/* Compact Activity Metrics */}
         <View style={styles.compactMetrics}>
           <View style={styles.compactMetricItem}>
-            <View style={styles.compactMetricIcon}>
+            <View style={[styles.compactMetricIcon, { backgroundColor: '#e9f6eb' }]}>
               <Ionicons name="walk" size={20} color="#30D158" />
             </View>
             <Text style={styles.compactMetricValue}>
-              {loading ? '...' : (Math.random() * 5 + 1).toFixed(1)}
+              {loading ? '...' : distance.toFixed(2)}
             </Text>
             <Text style={styles.compactMetricLabel}>km</Text>
           </View>
-
           <View style={styles.compactMetricItem}>
-            <View style={styles.compactMetricIcon}>
+            <View style={[styles.compactMetricIcon, { backgroundColor: '#e6f0ff' }]}>
               <Ionicons name="time" size={20} color="#007AFF" />
             </View>
             <Text style={styles.compactMetricValue}>
@@ -270,9 +323,8 @@ const GoogleFit: React.FC = () => {
             </Text>
             <Text style={styles.compactMetricLabel}>min</Text>
           </View>
-
           <View style={styles.compactMetricItem}>
-            <View style={styles.compactMetricIcon}>
+            <View style={[styles.compactMetricIcon, { backgroundColor: '#fff4e6' }]}>
               <Ionicons name="footsteps" size={20} color="#FF9500" />
             </View>
             <Text style={styles.compactMetricValue}>
@@ -286,7 +338,7 @@ const GoogleFit: React.FC = () => {
         <View style={styles.card}>
           <TouchableOpacity style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Your daily goals</Text>
-            <Text style={styles.chevron}>&gt;</Text>
+            <Ionicons name="chevron-forward" size={20} color="#888" />
           </TouchableOpacity>
           <Text style={styles.cardSubtitle}>Last 7 days</Text>
           <View style={styles.dailyGoalsContainer}>
@@ -302,22 +354,36 @@ const GoogleFit: React.FC = () => {
           </View>
         </View>
 
-        {/* Weekly Target Card */}
-        <View style={styles.card}>
-          <TouchableOpacity style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Your weekly target</Text>
-            <Text style={styles.chevron}>&gt;</Text>
-          </TouchableOpacity>
-          <Text style={styles.cardSubtitle}>4 - 10 Aug</Text>
-          {/* Placeholder for the weekly progress bar */}
-          <Text style={styles.goalsProgressValue}>4 of 150</Text>
-          <View style={styles.weeklyProgressBarContainer}>
-            <View style={styles.weeklyProgressBar} />
-          </View>
-          <Text style={styles.cardText}>
-            Scoring 150 Heart Points a week can...
-          </Text>
-        </View>
+        {/* Dynamic Chart Cards */}
+        <ModernChartCard
+          title="Heart Points"
+          subtitle="Last 7 days"
+          value={heartRate}
+          valueColor="#30D158"
+          onPress={() => navigation.navigate('HeartPointsDetail')}
+          chartData={generateChartData(days, () => Math.floor(Math.random() * 30) + 10, '#30D158')}
+          chartMaxValue={40}
+        />
+
+        <ModernChartCard
+          title="Steps"
+          subtitle="Last 7 days"
+          value={steps}
+          valueColor="#007AFF"
+          onPress={() => navigation.navigate('StepsDetail')}
+          chartData={generateChartData(days, () => Math.floor(Math.random() * 15000) + 5000, '#007AFF')}
+          chartMaxValue={20000}
+        />
+
+        <ModernChartCard
+          title="Energy Expended"
+          subtitle="Last 7 days"
+          value={calories}
+          valueColor="#FF3B30"
+          onPress={() => navigation.navigate('EnergyDetail')}
+          chartData={generateChartData(days, () => Math.floor(Math.random() * 500) + 200, '#FF3B30')}
+          chartMaxValue={800}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -333,350 +399,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
-  // Consistent Header Styles (matching other screens)
-  consistentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#fff',
-  },
-  consistentHeaderTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    fontFamily: 'SF Pro Display',
-  },
-  consistentHeaderActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  consistentIconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  consistentProfileButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  // Overview Card Styles
-  overviewCard: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 16,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  overviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  overviewTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    fontFamily: 'SF Pro Display',
-  },
-  overviewDate: {
-    fontSize: 15,
-    color: '#666',
-    fontWeight: '500',
-    fontFamily: 'SF Pro Text',
-  },
-  // New Activity Layout Container
-  activityLayoutContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  activityValuesSection: {
-    flex: 1,
-    paddingRight: 20,
-  },
-  valueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  valueLineRed: {
-    width: 3,
-    height: 24,
-    backgroundColor: '#FF3B30',
-    borderRadius: 1.5,
-    marginRight: 12,
-  },
-  valueLineGreen: {
-    width: 3,
-    height: 24,
-    backgroundColor: '#30D158',
-    borderRadius: 1.5,
-    marginRight: 12,
-  },
-  valueLineBlue: {
-    width: 3,
-    height: 24,
-    backgroundColor: '#007AFF',
-    borderRadius: 1.5,
-    marginRight: 12,
-  },
-  valueContent: {
-    flex: 1,
-  },
-  activityValueText: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    fontFamily: 'SF Pro Display',
-    marginBottom: 2,
-  },
-  activityCategoryText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-    fontFamily: 'SF Pro Text',
-  },
-  progressRingsSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // Compact Metrics Styles
-  compactMetrics: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  compactMetricItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  compactMetricIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#f8f9fa',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  compactMetricValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    fontFamily: 'SF Pro Display',
-    marginBottom: 2,
-  },
-  compactMetricLabel: {
-    fontSize: 13,
-    color: '#666',
-    fontWeight: '500',
-    fontFamily: 'SF Pro Text',
-  },
-  // Modern Header Styles (kept for reference but not used)
-  modernHeader: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    fontFamily: 'SF Pro Display',
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 2,
-    fontFamily: 'SF Pro Text',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  modernIconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modernProfileButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  profileIconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  // Progress Rings Container (legacy)
-  progressRingsContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  progressRingsWrapper: {
-    marginBottom: 20,
-  },
-  progressLegend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 24,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  legendText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-    fontFamily: 'SF Pro Text',
-  },
-  // Quick Stats (legacy)
-  quickStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-  },
-  statIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 2,
-    fontFamily: 'SF Pro Display',
-  },
-  statLabel: {
-    fontSize: 13,
-    color: '#666',
-    fontWeight: '500',
-    fontFamily: 'SF Pro Text',
-  },
-  // Activity Summary
-  activitySummary: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  activityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  activityIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#f8f9fa',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  activityDetails: {
-    flex: 1,
-  },
-  activityValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 2,
-    fontFamily: 'SF Pro Display',
-  },
-  activityLabel: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-    fontFamily: 'SF Pro Text',
-  },
-  activityProgress: {
-    width: 60,
-    height: 4,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 2,
-    marginLeft: 16,
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#30D158',
-    borderRadius: 2,
-  },
-  // Keep existing styles for the rest of the screen
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -718,83 +440,116 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  timeText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconButton: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  profilePic: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  overviewCard: {
     backgroundColor: '#fff',
-  },
-  progressContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 20,
-  },
-  progressTextContainer: {
-    position: 'absolute',
-    alignItems: 'center',
-  },
-  heartPtsValue: {
-    fontSize: 50,
-    fontWeight: 'bold',
-    color: '#26a69a',
-  },
-  stepsValue: {
-    fontSize: 20,
-    color: '#479aff',
-    fontWeight: 'bold',
-  },
-  statsIconsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  statsIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginHorizontal: 15,
+    marginTop: 20,
+    marginBottom: 16,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  statsIcon: {
-    fontSize: 20,
-    marginRight: 5,
-  },
-  statsLabel: {
-    fontSize: 16,
-    color: '#333',
-  },
-  metricsContainer: {
+  overviewHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 15,
-    marginBottom: 20,
-  },
-  metricItem: {
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 24,
   },
-  metricValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#479aff',
+  overviewTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    fontFamily: 'SF Pro Display',
   },
-  metricLabel: {
-    fontSize: 14,
+  overviewDate: {
+    fontSize: 15,
+    color: '#666',
     fontWeight: '500',
-    color: '#888',
+    fontFamily: 'SF Pro Text',
+  },
+  activityLayoutContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  activityValuesSection: {
+    flex: 1,
+    paddingRight: 20,
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  valueLine: {
+    width: 3,
+    height: 24,
+    borderRadius: 1.5,
+    marginRight: 12,
+  },
+  valueContent: {
+    flex: 1,
+  },
+  activityValueText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    fontFamily: 'SF Pro Display',
+    marginBottom: 2,
+  },
+  activityCategoryText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+    fontFamily: 'SF Pro Text',
+  },
+  progressRingsSection: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compactMetrics: {
+    backgroundColor: '#fff',
+    marginHorizontal: 15,
+    marginBottom: 20,
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  compactMetricItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  compactMetricIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  compactMetricValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    fontFamily: 'SF Pro Display',
+    marginBottom: 2,
+  },
+  compactMetricLabel: {
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '500',
+    fontFamily: 'SF Pro Text',
   },
   card: {
     backgroundColor: '#fff',
@@ -808,6 +563,69 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 2,
   },
+  modernChartCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    marginHorizontal: 12,
+    marginBottom: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 0.5,
+    borderColor: '#EFEFEF',
+  },
+  modernCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modernCardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Display',
+    marginBottom: 2,
+  },
+  modernCardSubtitle: {
+    fontSize: 13,
+    color: '#8E8E93',
+    fontWeight: '500',
+    fontFamily: 'SF Pro Text',
+  },
+  modernChartContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginTop: 0,
+  },
+  modernValueSection: {
+    flex: 1,
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  modernChartSection: {
+    flex: 1,
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    marginBottom: -6,
+    paddingTop: 10,
+  },
+  modernMainValue: {
+    fontSize: 32,
+    fontWeight: '800',
+    fontFamily: 'SF Pro Display',
+    lineHeight: 36,
+  },
+  modernValueLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: 'SF Pro Text',
+  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -817,10 +635,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
-  },
-  chevron: {
-    fontSize: 24,
-    color: '#888',
   },
   cardSubtitle: {
     fontSize: 12,
@@ -871,23 +685,6 @@ const styles = StyleSheet.create({
   },
   dailyGoalTextAchieved: {
     color: '#4caf50',
-  },
-  weeklyProgressBarContainer: {
-    height: 10,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 5,
-    marginTop: 5,
-  },
-  weeklyProgressBar: {
-    width: '40%', // Dummy progress
-    height: '100%',
-    backgroundColor: '#4285F4',
-    borderRadius: 5,
-  },
-  cardText: {
-    fontSize: 14,
-    color: '#888',
-    marginTop: 10,
   },
 });
 

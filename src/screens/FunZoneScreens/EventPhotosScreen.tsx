@@ -24,6 +24,14 @@ import {
 // import { launchCamera, launchImageLibrary, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  getEventPhotos,
+  getEventDetails,
+  getEventLeaderboard,
+  togglePhotoLike,
+  addPhotoReaction,
+} from '../../services/eventPhotosService';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -86,6 +94,167 @@ interface Props {
 
 const EMOJI_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '😡', '🔥', '✨', '🎉', '💯'];
 
+// --- MOCK DATA FOR PROTOTYPING ---
+const mockPhotos: EventPhoto[] = [
+  {
+    _id: 'photo_1',
+    user: {
+      _id: 'user_1',
+      fname: 'Alice',
+      lname: 'Johnson',
+      userLogo: 'https://randomuser.me/api/portraits/women/44.jpg',
+    },
+    imageUrl: 'https://images.pexels.com/photos/17260021/pexels-photo-17260021/free-photo-of-crowd-of-people-at-concert-at-night.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    caption: "Great night at the concert! 🎸🎶",
+    likes: ['user_2', 'user_3', 'user_4', 'user_5'],
+    reactions: [
+      { user: 'user_2', emoji: '🎉', createdAt: '2025-08-19T22:00:00Z' },
+      { user: 'user_3', emoji: '🔥', createdAt: '2025-08-19T22:01:00Z' },
+      { user: 'user_4', emoji: '👍', createdAt: '2025-08-19T22:02:00Z' },
+    ],
+    likeCount: 4,
+    reactionCounts: { '🎉': 1, '🔥': 1, '👍': 1 },
+    totalEngagement: 7, // likes + reactions
+    createdAt: '2025-08-19T21:58:00Z',
+  },
+  {
+    _id: 'photo_2',
+    user: {
+      _id: 'user_2',
+      fname: 'Bob',
+      lname: 'Williams',
+      userLogo: 'https://randomuser.me/api/portraits/men/44.jpg',
+    },
+    imageUrl: 'https://images.pexels.com/photos/20302834/pexels-photo-20302834/free-photo-of-young-man-with-a-camera-and-a-friend-walking-on-a-street-in-an-urban-area.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    caption: "Trying to get the perfect shot.",
+    likes: ['user_1', 'user_3', 'user_4'],
+    reactions: [
+      { user: 'user_1', emoji: '❤️', createdAt: '2025-08-19T22:05:00Z' },
+      { user: 'user_5', emoji: '😂', createdAt: '2025-08-19T22:06:00Z' },
+      { user: 'user_6', emoji: '😂', createdAt: '2025-08-19T22:07:00Z' },
+    ],
+    likeCount: 3,
+    reactionCounts: { '❤️': 1, '😂': 2 },
+    totalEngagement: 6,
+    createdAt: '2025-08-19T22:04:00Z',
+  },
+  {
+    _id: 'photo_3',
+    user: {
+      _id: 'user_3',
+      fname: 'Charlie',
+      lname: 'Davis',
+    },
+    imageUrl: 'https://images.pexels.com/photos/10148384/pexels-photo-10148384.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    caption: "The food stall was a must-visit! 🍔",
+    likes: ['user_1', 'user_2', 'user_4', 'user_5', 'user_6', 'user_7', 'user_8'],
+    reactions: [
+      { user: 'user_8', emoji: '👍', createdAt: '2025-08-19T22:15:00Z' },
+      { user: 'user_9', emoji: '👍', createdAt: '2025-08-19T22:16:00Z' },
+    ],
+    likeCount: 7,
+    reactionCounts: { '👍': 2 },
+    totalEngagement: 9,
+    createdAt: '2025-08-19T22:10:00Z',
+  },
+  {
+    _id: 'photo_4',
+    user: {
+      _id: 'user_4',
+      fname: 'Diana',
+      lname: 'Evans',
+      userLogo: 'https://randomuser.me/api/portraits/women/45.jpg',
+    },
+    imageUrl: 'https://images.pexels.com/photos/17983693/pexels-photo-17983693/free-photo-of-lights-in-a-crowd-at-a-music-festival.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    caption: "Amazing light show at the end of the night. ✨",
+    likes: ['user_1', 'user_2', 'user_3'],
+    reactions: [],
+    likeCount: 3,
+    reactionCounts: {},
+    totalEngagement: 3,
+    createdAt: '2025-08-19T22:20:00Z',
+  },
+];
+
+const mockLeaderboard: LeaderboardEntry[] = [
+  {
+    rank: 1,
+    user: {
+      _id: 'user_3',
+      fname: 'Charlie',
+      lname: 'Davis',
+    },
+    stats: {
+      totalPhotos: 2,
+      totalLikes: 10,
+      totalReactions: 4,
+      totalEngagement: 14,
+    },
+  },
+  {
+    rank: 2,
+    user: {
+      _id: 'user_1',
+      fname: 'Alice',
+      lname: 'Johnson',
+      userLogo: 'https://randomuser.me/api/portraits/women/44.jpg',
+    },
+    stats: {
+      totalPhotos: 1,
+      totalLikes: 7,
+      totalReactions: 3,
+      totalEngagement: 10,
+    },
+  },
+  {
+    rank: 3,
+    user: {
+      _id: 'user_2',
+      fname: 'Bob',
+      lname: 'Williams',
+      userLogo: 'https://randomuser.me/api/portraits/men/44.jpg',
+    },
+    stats: {
+      totalPhotos: 1,
+      totalLikes: 5,
+      totalReactions: 2,
+      totalEngagement: 7,
+    },
+  },
+  {
+    rank: 4,
+    user: {
+      _id: 'user_4',
+      fname: 'Diana',
+      lname: 'Evans',
+      userLogo: 'https://randomuser.me/api/portraits/women/45.jpg',
+    },
+    stats: {
+      totalPhotos: 1,
+      totalLikes: 3,
+      totalReactions: 0,
+      totalEngagement: 3,
+    },
+  },
+  {
+    rank: 5,
+    user: {
+      _id: 'user_5',
+      fname: 'Elijah',
+      lname: 'Clark',
+      userLogo: 'https://randomuser.me/api/portraits/men/46.jpg',
+    },
+    stats: {
+      totalPhotos: 1,
+      totalLikes: 2,
+      totalReactions: 1,
+      totalEngagement: 3,
+    },
+  },
+];
+// --- END MOCK DATA ---
+
+
 const EventPhotosScreen: React.FC<Props> = ({ route, navigation }) => {
   const { eventId, eventTitle } = route.params;
 
@@ -104,75 +273,22 @@ const EventPhotosScreen: React.FC<Props> = ({ route, navigation }) => {
   const [selectedPhotoId, setSelectedPhotoId] = useState<string>('');
   const [captionText, setCaptionText] = useState('');
 
-  // Fetch event details and photos
-  const fetchEventData = useCallback(async () => {
-    try {
-      // Replace with your API endpoint
-      const response = await fetch(`/api/event-photos/${eventId}/details`, {
-        headers: {
-          'Authorization': `Bearer ${await getAuthToken()}`, // Implement getAuthToken()
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setEvent(data.data.event);
-        setPhotos(data.data.photos);
-      } else {
-        throw new Error('Failed to fetch event data');
-      }
-    } catch (error) {
-      console.error('Fetch event data error:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to load event data',
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [eventId]);
-
-  // Fetch leaderboard
-  const fetchLeaderboard = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/event-photos/${eventId}/leaderboard`, {
-        headers: {
-          'Authorization': `Bearer ${await getAuthToken()}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setLeaderboard(data.data);
-      }
-    } catch (error) {
-      console.error('Fetch leaderboard error:', error);
-    }
-  }, [eventId]);
-
-  // Helper function to get auth token (implement based on your auth system)
-  const getAuthToken = async (): Promise<string> => {
-    // Implementation depends on your auth system
-    // This is a placeholder
-    return 'your-auth-token';
-  };
-
+  // Use the mock data directly instead of making API calls
   useEffect(() => {
-    fetchEventData();
-    if (activeTab === 'leaderboard') {
-      fetchLeaderboard();
-    }
-  }, [fetchEventData, fetchLeaderboard, activeTab]);
+    setPhotos(mockPhotos);
+    setLeaderboard(mockLeaderboard);
+    setLoading(false);
+  }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchEventData();
-    if (activeTab === 'leaderboard') {
-      await fetchLeaderboard();
-    }
-    setRefreshing(false);
-  }, [fetchEventData, fetchLeaderboard, activeTab]);
+    // Simulating a refresh with a delay to show the loading indicator
+    setTimeout(() => {
+      setPhotos(mockPhotos);
+      setLeaderboard(mockLeaderboard);
+      setRefreshing(false);
+    }, 1000);
+  }, []);
 
   // Camera functionality
   const openCamera = () => {
@@ -183,141 +299,74 @@ const EventPhotosScreen: React.FC<Props> = ({ route, navigation }) => {
     setShowCameraModal(false);
     
     // Placeholder for camera/gallery integration
-    // You'll need to install react-native-image-picker or react-native-image-crop-picker
-    // and implement proper image selection here
-    
     Toast.show({
       type: 'info',
       text1: 'Camera Feature',
       text2: `${option} functionality will be implemented with proper image picker library`,
     });
-
-    // For demo purposes, create a mock upload
-    // uploadPhoto({ uri: 'placeholder', type: 'image/jpeg', name: 'photo.jpg' });
   };
 
-  const uploadPhoto = async (asset: any) => {
-    setUploading(true);
-    
-    const formData = new FormData();
-    formData.append('photo', {
-      uri: asset.uri,
-      type: asset.type,
-      name: asset.fileName || 'photo.jpg',
-    } as any);
-    
-    if (captionText.trim()) {
-      formData.append('caption', captionText.trim());
-    }
+  // Like functionality (updated to use mock data)
+  const handleToggleLike = async (photoId: string) => {
+    setPhotos(prevPhotos => {
+      return prevPhotos.map(photo => {
+        if (photo._id === photoId) {
+          const isLiked = photo.likes.includes('current_user_id'); // Assuming 'current_user_id' is a placeholder
+          const updatedLikes = isLiked
+            ? photo.likes.filter(id => id !== 'current_user_id')
+            : [...photo.likes, 'current_user_id'];
+          
+          const newLikeCount = updatedLikes.length;
+          const newTotalEngagement = newLikeCount + Object.values(photo.reactionCounts).reduce((sum, count) => sum + count, 0);
 
-    try {
-      const response = await fetch(`/api/event-photos/${eventId}/photos`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${await getAuthToken()}`,
-          'Content-Type': 'multipart/form-data',
-        },
-        body: formData,
-      });
+          Toast.show({
+            type: 'success',
+            text1: isLiked ? '👎 Unliked' : '👍 Liked!',
+            text2: '',
+          });
 
-      if (response.ok) {
-        const data = await response.json();
-        setPhotos(prev => [data.data, ...prev]);
-        setCaptionText('');
-        Toast.show({
-          type: 'success',
-          text1: 'Success',
-          text2: 'Photo uploaded successfully! 📸',
-        });
-      } else {
-        throw new Error('Upload failed');
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to upload photo',
+          return {
+            ...photo,
+            likes: updatedLikes,
+            likeCount: newLikeCount,
+            totalEngagement: newTotalEngagement,
+          };
+        }
+        return photo;
       });
-    } finally {
-      setUploading(false);
-    }
+    });
   };
 
-  // Like functionality
-  const toggleLike = async (photoId: string) => {
-    try {
-      const response = await fetch(`/api/event-photos/photos/${photoId}/like`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${await getAuthToken()}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        
-        setPhotos(prev => prev.map(photo => 
-          photo._id === photoId 
-            ? { 
-                ...photo, 
-                likeCount: data.data.likeCount,
-                totalEngagement: data.data.totalEngagement
-              }
-            : photo
-        ));
-
-        Toast.show({
-          type: 'success',
-          text1: data.data.action === 'liked' ? '👍 Liked!' : '👎 Unliked',
-          text2: '',
-        });
-      }
-    } catch (error) {
-      console.error('Like error:', error);
-    }
-  };
-
-  // Reaction functionality
-  const addReaction = async (emoji: string) => {
+  // Reaction functionality (updated to use mock data)
+  const handleAddReaction = async (emoji: string) => {
     if (!selectedPhotoId) return;
 
-    try {
-      const response = await fetch(`/api/event-photos/photos/${selectedPhotoId}/reaction`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${await getAuthToken()}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ emoji }),
+    setPhotos(prevPhotos => {
+      return prevPhotos.map(photo => {
+        if (photo._id === selectedPhotoId) {
+          const newReactionCounts = { ...photo.reactionCounts };
+          newReactionCounts[emoji] = (newReactionCounts[emoji] || 0) + 1;
+          
+          const newTotalEngagement = photo.likeCount + Object.values(newReactionCounts).reduce((sum, count) => sum + count, 0);
+
+          Toast.show({
+            type: 'success',
+            text1: `${emoji} Reaction added!`,
+            text2: '',
+          });
+
+          return {
+            ...photo,
+            reactionCounts: newReactionCounts,
+            totalEngagement: newTotalEngagement,
+          };
+        }
+        return photo;
       });
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        
-        setPhotos(prev => prev.map(photo => 
-          photo._id === selectedPhotoId 
-            ? { 
-                ...photo, 
-                reactionCounts: data.data.reactionCounts,
-                totalEngagement: data.data.totalEngagement
-              }
-            : photo
-        ));
-
-        setShowReactionModal(false);
-        setSelectedPhotoId('');
-
-        Toast.show({
-          type: 'success',
-          text1: `${emoji} Reaction added!`,
-          text2: '',
-        });
-      }
-    } catch (error) {
-      console.error('Reaction error:', error);
-    }
+    setShowReactionModal(false);
+    setSelectedPhotoId('');
   };
 
   const openReactionModal = (photoId: string) => {
@@ -325,7 +374,7 @@ const EventPhotosScreen: React.FC<Props> = ({ route, navigation }) => {
     setShowReactionModal(true);
   };
 
-  // Render functions
+  // Render functions (unchanged)
   const renderPhotoItem = ({ item }: { item: EventPhoto }) => (
     <View style={styles.photoCard}>
       <View style={styles.photoHeader}>
@@ -370,7 +419,7 @@ const EventPhotosScreen: React.FC<Props> = ({ route, navigation }) => {
       <View style={styles.photoActions}>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => toggleLike(item._id)}>
+          onPress={() => handleToggleLike(item._id)}>
           <Icon name="heart" size={20} color="#FF3B30" />
           <Text style={styles.actionText}>{item.likeCount}</Text>
         </TouchableOpacity>
@@ -383,10 +432,10 @@ const EventPhotosScreen: React.FC<Props> = ({ route, navigation }) => {
         </TouchableOpacity>
 
         <View style={styles.reactionDisplay}>
-          {Object.entries(item.reactionCounts).map(([emoji, count]) => (
+          {item.reactionCounts && Object.keys(item.reactionCounts).map((emoji) => (
             <View key={emoji} style={styles.reactionItem}>
               <Text style={styles.reactionEmoji}>{emoji}</Text>
-              <Text style={styles.reactionCount}>{count}</Text>
+              <Text style={styles.reactionCount}>{item.reactionCounts[emoji]}</Text>
             </View>
           ))}
         </View>
@@ -399,7 +448,7 @@ const EventPhotosScreen: React.FC<Props> = ({ route, navigation }) => {
       <View style={styles.rankSection}>
         <View style={[
           styles.rankBadge,
-          { backgroundColor: item.rank <= 3 ? '#FFD700' : '#8E8E93' }
+          item.rank <= 3 ? styles.topRankBadge : styles.regularRankBadge
         ]}>
           <Text style={styles.rankText}>{item.rank}</Text>
         </View>
@@ -609,7 +658,7 @@ const EventPhotosScreen: React.FC<Props> = ({ route, navigation }) => {
                 <TouchableOpacity
                   key={emoji}
                   style={styles.emojiButton}
-                  onPress={() => addReaction(emoji)}>
+                  onPress={() => handleAddReaction(emoji)}>
                   <Text style={styles.emojiText}>{emoji}</Text>
                 </TouchableOpacity>
               ))}
@@ -901,6 +950,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  topRankBadge: {
+    backgroundColor: '#FFD700',
+  },
+
+  regularRankBadge: {
+    backgroundColor: '#8E8E93',
   },
 
   rankText: {
