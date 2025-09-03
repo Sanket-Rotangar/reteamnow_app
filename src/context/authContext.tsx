@@ -1,26 +1,30 @@
 // src/context/AuthContext.tsx
+// Contains userToken and userInfo 
+
 import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginUser, registerUser } from '../services/authService';
 
 type User = {
+  _id: string;
   fname: string;
   lname: string;
   username: string;
   email: string;
+  role?: string;
+  jobRole?: string;
+  userLogo?: string;
+  teamTitle?: string[];
+  workspaceName?: string[];
+  directManager?: string | null;
+  dottedLineManager?: string | null;
 };
 
 type AuthContextType = {
   userToken: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (
-    fname: string,
-    lname: string,
-    username: string,
-    email: string,
-    password: string,
-  ) => Promise<void>;
+  register: ( fname: string, lname: string, username: string, email: string, password: string ) => Promise<void>;
   userInfo: User | null;
 };
 
@@ -74,12 +78,12 @@ export const AuthProvider = ({ children }: any) => {
 
   return (
     <AuthContext.Provider
-      value={{ 
-        userToken, 
-        login, 
-        logout, 
-        register, 
-        userInfo
+      value={{
+        userToken,
+        login,
+        logout,
+        register,
+        userInfo,
       }}
     >
       {children}

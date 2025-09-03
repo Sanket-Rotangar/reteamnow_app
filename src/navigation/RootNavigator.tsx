@@ -4,6 +4,7 @@ import AppStack from './AppStack';
 import AuthStack from './AuthStack';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { AuthContext } from '../context/authContext';
+import { HealthProvider } from '../context/healthContext';
 
 const RootNavigator = () => {
   const [healthConnectInitialized, setHealthConnectInitialized] =
@@ -35,7 +36,11 @@ const RootNavigator = () => {
 
   // Once initialized, render the rest of your app based on authentication state
   // Use userToken directly - if it exists, user is authenticated
-  return userToken ? <AppStack /> : <AuthStack />;
+  return userToken ?
+  <HealthProvider>
+   <AppStack />
+   </HealthProvider>
+   : <AuthStack />;
 };
 
 export default RootNavigator;

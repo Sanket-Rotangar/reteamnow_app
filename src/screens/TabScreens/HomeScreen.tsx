@@ -2,11 +2,19 @@
  * Modern Home Screen - Professional Dashboard
  *
  * Following the 10-30-60 design rule with proper spacing and light theme
- * Structure inspired by GoogleFit.tsx with enhanced typography and layout
+ * Structure i  useEffect(() => {
+    // Fetch today's health data on mount
+    const start = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+    const end = new Date().toISOString();
+    refreshHealthData(start, end);
+
+    // Fetch attendance data
+    fetchAttendanceData();
+  }, [refreshHealthData]);d by GoogleFit.tsx with enhanced typography and layout
  * Balance between dashboard functionality and good UI design
  */
 
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -18,23 +26,145 @@ import {
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import Icon from 'react-native-vector-icons/Ionicons';
-// import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import ProgressRings from '../../components/ProgressRings';
+import { HealthContext } from '../../context/healthContext';
 import { AuthContext } from '../../context/authContext';
+import { colors } from '../../config/colors';
+import { getTodayAttendance, getAttendanceHistory } from '../../services/attendanceService';
 
 // Enhanced data structure for the analytics cards
 const cardsData = [
-  { id: '1', type: 'fitness', title: 'Health Analytics', subtitle: 'Today\'s Progress' },
-  { id: '2', type: 'productivity', title: 'Performance Insights', subtitle: 'Weekly Summary' },
-  { id: '3', type: 'attendance', title: 'Attendance Overview', subtitle: 'Monthly Stats' },
-  { id: '4', type: 'achievements', title: 'Goal Achievement', subtitle: 'Current Streak' },
+  {
+    id: '1',
+    type: 'attendance',
+    title: 'Attendance Overview',
+    subtitle: 'Monthly Stats',
+  },
+  {
+    id: '2',
+    type: 'fitness',
+    title: 'Health Analytics',
+    subtitle: "Today's Progress",
+  },
+  {
+    id: '3',
+    type: 'leaderboard',
+    title: 'Leaderboard',
+    subtitle: 'Weekly Summary',
+  },
+  // { id: '4', type: 'achievements', title: 'Goal Achievement', subtitle: 'Current Streak' },
 ];
 
 const HomeScreen = () => {
-  var { userInfo } = useContext(AuthContext);
-  // const navigation = useNavigation();
+  const context = useContext(HealthContext);
+  const { userInfo } = useContext(AuthContext);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Attendance state
+  const [attendanceData, setAttendanceData] = useState({
+    isCheckedIn: false,
+    checkInTime: null,
+    checkOutTime: null,
+    totalHours: null,
+    monthlyPercentage: '0%',
+    daysWorkedThisMonth: 0,
+    currentStreak: 0,
+    todayStatus: 'Not Checked In',
+  });
+  const [loadingAttendance, setLoadingAttendance] = useState(false);
+
+  const { healthData, loading, refreshHealthData } = context;
+
+  // Fetch attendance data
+  const fetchAttendanceData = async () => {
+    setLoadingAttendance(true);
+    try {
+      const [todayData, historyData] = await Promise.all([
+        getTodayAttendance(),
+        getAttendanceHistory()
+      ]);
+
+      // Calculate monthly stats
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      
+      const currentMonthRecords = historyData.filter((record: any) => {
+        const recordDate = new Date(record.date);
+        return recordDate.getMonth() === currentMonth && 
+               recordDate.getFullYear() === currentYear;
+      });
+
+      const presentDays = currentMonthRecords.filter((record: any) => 
+        record.status === 'present' && record.checkInTime
+      ).length;
+
+      const totalWorkingDays = currentMonthRecords.length || 1;
+      const monthlyPercentage = Math.round((presentDays / totalWorkingDays) * 100);
+
+      // Calculate current streak
+      const sortedHistory = historyData.sort((a: any, b: any) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+
+      let streak = 0;
+      for (const record of sortedHistory) {
+        if (record.status === 'present' && record.checkInTime) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+
+      // Determine today's status
+      let todayStatus = 'Not Checked In';
+      if (todayData) {
+        if (todayData.checkOutTime) {
+          todayStatus = 'Checked Out';
+        } else if (todayData.checkInTime) {
+          todayStatus = 'Checked In';
+        }
+      }
+
+      setAttendanceData({
+        isCheckedIn: todayData?.isCheckedIn || false,
+        checkInTime: todayData?.checkInTime,
+        checkOutTime: todayData?.checkOutTime,
+        totalHours: todayData?.totalHours,
+        monthlyPercentage: `${monthlyPercentage}%`,
+        daysWorkedThisMonth: presentDays,
+        currentStreak: streak,
+        todayStatus,
+      });
+    } catch (error) {
+      console.error('Error fetching attendance data:', error);
+    } finally {
+      setLoadingAttendance(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  }, []);
+
+    useEffect(() => {
+    // Fetch today’s data on mount
+    const start = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+    const end = new Date().toISOString();
+    refreshHealthData(start, end);
+  }, [refreshHealthData]);
+
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
 
   const showToast = () => {
     Toast.show({
@@ -55,8 +185,8 @@ const HomeScreen = () => {
         key={card.id}
         activeOpacity={0.92}
         onPress={() => handleCardPress(card.type)}
-        style={styles.dataCard}>
-        
+        style={styles.dataCard}
+      >
         {/* Card Header */}
         <View style={styles.cardHeader}>
           <View style={styles.cardTitleSection}>
@@ -75,33 +205,39 @@ const HomeScreen = () => {
               <View style={styles.valueRow}>
                 <View style={styles.valueLineRed} />
                 <View style={styles.valueContent}>
-                  <Text style={styles.activityValueText}>412</Text>
-                  <Text style={styles.activityCategoryText}>calories</Text>
+                  <Text style={styles.activityValueText}>
+                    {loading ? '...' : healthData.steps.toLocaleString()}
+                  </Text>
+                  <Text style={styles.activityCategoryText}>Steps</Text>
                 </View>
               </View>
-              
+
               <View style={styles.valueRow}>
                 <View style={styles.valueLineGreen} />
                 <View style={styles.valueContent}>
-                  <Text style={styles.activityValueText}>23</Text>
-                  <Text style={styles.activityCategoryText}>exercise mins</Text>
+                  <Text style={styles.activityValueText}>
+                    {loading ? '...' : healthData.calories.toLocaleString()}
+                  </Text>
+                  <Text style={styles.activityCategoryText}>Calories</Text>
                 </View>
               </View>
-              
+
               <View style={styles.valueRow}>
                 <View style={styles.valueLineBlue} />
                 <View style={styles.valueContent}>
-                  <Text style={styles.activityValueText}>8/12</Text>
-                  <Text style={styles.activityCategoryText}>stand hours</Text>
+                  <Text style={styles.activityValueText}>
+                    {loading ? '...' : healthData.heartRate.toFixed(0)}
+                  </Text>
+                  <Text style={styles.activityCategoryText}>Avg BPM</Text>
                 </View>
               </View>
             </View>
 
             <View style={styles.progressRingsSection}>
-              <ProgressRings 
-                move={0.75}
-                exercise={0.65} 
-                stand={0.85}
+              <ProgressRings
+                move={healthData.steps}
+                exercise={healthData.calories}
+                stand={healthData.heartRate}
                 size={160}
               />
             </View>
@@ -135,24 +271,53 @@ const HomeScreen = () => {
           <View style={styles.dataCardContent}>
             <View style={styles.attendanceDisplay}>
               <View style={styles.attendanceMain}>
-                <Text style={styles.attendancePercent}>98%</Text>
+                <Text style={styles.attendancePercent}>
+                  {loadingAttendance ? '...' : attendanceData.monthlyPercentage}
+                </Text>
                 <Text style={styles.attendanceLabel}>This Month</Text>
               </View>
               <View style={styles.attendanceSecondary}>
                 <View style={styles.attendanceStat}>
-                  <Text style={styles.attendanceNumber}>23</Text>
+                  <Text style={styles.attendanceNumber}>
+                    {loadingAttendance ? '..' : attendanceData.daysWorkedThisMonth}
+                  </Text>
                   <Text style={styles.attendanceText}>Present</Text>
                 </View>
                 <View style={styles.attendanceStat}>
-                  <Text style={styles.attendanceNumber}>1</Text>
-                  <Text style={styles.attendanceText}>Absent</Text>
+                  <Icon 
+                    name={attendanceData.isCheckedIn ? 'checkmark-circle' : 'time-outline'} 
+                    size={20} 
+                    color={attendanceData.isCheckedIn ? '#34C759' : '#FF9500'} 
+                  />
+                  <Text style={styles.attendanceStatus}>
+                    {loadingAttendance ? 'Loading...' : attendanceData.todayStatus}
+                  </Text>
                 </View>
               </View>
             </View>
             <View style={styles.streakBadge}>
               <Icon name="flame" size={14} color="#FF9500" />
-              <Text style={styles.streakText}>15 day streak</Text>
+              <Text style={styles.streakText}>
+                {loadingAttendance ? 'Loading...' : `${attendanceData.currentStreak} day streak`}
+              </Text>
             </View>
+            {attendanceData.checkInTime && (
+              <View style={styles.todayTimeInfo}>
+                <Text style={styles.timeLabel}>
+                  Check-in: {new Date(attendanceData.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+                {attendanceData.checkOutTime && (
+                  <Text style={styles.timeLabel}>
+                    Check-out: {new Date(attendanceData.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                )}
+                {attendanceData.totalHours && (
+                  <Text style={styles.totalHours}>
+                    Total: {attendanceData.totalHours}
+                  </Text>
+                )}
+              </View>
+            )}
           </View>
         )}
 
@@ -182,36 +347,48 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Clean Header - Following GoogleFit structure */}
+      {/* Modern Header - Enhanced with user context */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Image
-            source={{
-              uri: 'https://img.freepik.com/premium-photo/hooded-hacker-logo-mascot_941097-24659.jpg',
-            }}
-            style={styles.profileImage}
-          />
+          <View style={styles.profileImageContainer}>
+            <Image
+              source={{
+                uri: 'https://img.freepik.com/premium-photo/hooded-hacker-logo-mascot_941097-24659.jpg',
+              }}
+              style={styles.profileImage}
+            />
+            <View style={styles.statusIndicator} />
+          </View>
           <View style={styles.welcomeSection}>
-            <Text style={styles.greeting}>Good morning</Text>
-            <Text style={styles.userName}>Sanket</Text>
+            <Text style={styles.greeting}>{getGreeting()}</Text>
+            <Text style={styles.userName}>
+              {userInfo?.fname
+                ? `${userInfo.fname.toLocaleUpperCase()} ${userInfo.lname.toLocaleUpperCase()}`
+                : 'User'}
+            </Text>
+            <Text style={styles.userRole}>
+              {userInfo?.jobRole || userInfo?.role || 'Employee'}
+            </Text>
           </View>
         </View>
-        <TouchableOpacity
-          style={styles.notificationButton}
-          onPress={showToast}>
-          <Icon name="notifications-outline" size={20} color="#1A1A1A" />
+        <TouchableOpacity style={styles.notificationButton} onPress={showToast}>
+          <Icon
+            name="notifications-outline"
+            size={22}
+            color={colors.textSecondary}
+          />
+          <View style={styles.notificationBadge} />
         </TouchableOpacity>
       </View>
 
       {/* Main Content */}
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}>
-        
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Today's Overview */}
         <View style={styles.overviewSection}>
           <Text style={styles.sectionTitle}>Today's Overview</Text>
-          <Text style={styles.sectionSubtitle}>Your performance at a glance</Text>
+          <Text style={styles.sectionSubtitle}>
+            Your performance at a glance
+          </Text>
         </View>
 
         {/* Data Visualization Cards */}
@@ -219,7 +396,8 @@ const HomeScreen = () => {
           <PagerView
             style={styles.pager}
             initialPage={0}
-            onPageSelected={(e) => setCurrentCardIndex(e.nativeEvent.position)}>
+            onPageSelected={e => setCurrentCardIndex(e.nativeEvent.position)}
+          >
             {cardsData.map((card, index) => (
               <View key={card.id} style={styles.pageWrapper}>
                 {renderCard(card, index)}
@@ -247,15 +425,22 @@ const HomeScreen = () => {
           <View style={styles.actionsGrid}>
             {[
               { icon: 'person-add-outline', title: 'Team', color: '#007AFF' },
-              { icon: 'bar-chart-outline', title: 'Analytics', color: '#34C759' },
+              {
+                icon: 'bar-chart-outline',
+                title: 'Analytics',
+                color: '#34C759',
+              },
               { icon: 'calendar-outline', title: 'Schedule', color: '#FF3B30' },
               { icon: 'settings-outline', title: 'Settings', color: '#AF52DE' },
             ].map((action, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.actionCard}
-                activeOpacity={0.8}>
-                <View style={[styles.actionIcon, { backgroundColor: action.color }]}>
+                activeOpacity={0.8}
+              >
+                <View
+                  style={[styles.actionIcon, { backgroundColor: action.color }]}
+                >
                   <Icon name={action.icon} size={18} color="#FFFFFF" />
                 </View>
                 <Text style={styles.actionTitle}>{action.title}</Text>
@@ -751,6 +936,72 @@ const styles = StyleSheet.create({
     color: '#1D1D1F',
     fontFamily: 'SF Pro Text',
     textAlign: 'center',
+  },
+
+  // Enhanced Profile and Notification Styles
+  profileImageContainer: {
+    position: 'relative',
+  },
+
+  statusIndicator: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.success,
+    borderWidth: 2,
+    borderColor: colors.surface,
+  },
+
+  userRole: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.textLight,
+    marginTop: 2,
+  },
+
+  notificationBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.secondary,
+  },
+
+  // New Attendance Card Styles
+  attendanceStatus: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
+    marginLeft: 4,
+  },
+
+  todayTimeInfo: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 12,
+  },
+
+  timeLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#8E8E93',
+    fontFamily: 'SF Pro Text',
+    marginBottom: 4,
+  },
+
+  totalHours: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1D1D1F',
+    fontFamily: 'SF Pro Text',
+    marginTop: 4,
   },
 });
 

@@ -20,6 +20,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
+import { colors } from '../../config/colors';
 
 // Mock data for leaderboard
 const leaderboardData = [
@@ -226,21 +227,39 @@ const FunZoneScreen = () => {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         
-        {/* Leaderboard Section - Full Width Card */}
-        <View style={styles.leaderboardSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>🏆 Leaderboard</Text>
-            <Text style={styles.sectionSubtitle}>Top performers this month</Text>
+        {/* Fun Zone Description */}
+        <View style={styles.descriptionSection}>
+          <View style={styles.descriptionCard}>
+            <View style={styles.iconRow}>
+              <Icon name="game-controller" size={24} color={colors.primary} />
+              <Text style={styles.descriptionTitle}>Welcome to Fun Zone!</Text>
+            </View>
+            <Text style={styles.descriptionText}>
+              Engage with your team through exciting activities, competitions, and entertainment. 
+              Participate in challenges, compete on leaderboards, and build stronger team connections.
+            </Text>
           </View>
+        </View>
 
-          <View style={styles.leaderboardCard}>
-            <FlatList
-              data={leaderboardData}
-              renderItem={renderLeaderboardItem}
-              keyExtractor={(item) => item.id}
-              scrollEnabled={false}
-              showsVerticalScrollIndicator={false}
-            />
+        {/* Navigation Options */}
+        <View style={styles.navigationSection}>
+          <Text style={styles.sectionTitle}>🎯 Activities</Text>
+          <View style={styles.navigationGrid}>
+            <TouchableOpacity style={styles.navCard} onPress={() => handleQuickAction('events')}>
+              <View style={[styles.navIcon, { backgroundColor: `${colors.secondary}15` }]}>
+                <Icon name="camera" size={20} color={colors.secondary} />
+              </View>
+              <Text style={styles.navTitle}>Event Photos</Text>
+              <Text style={styles.navSubtitle}>Browse memories</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.navCard} onPress={() => showToast('Opening Leaderboard! 🏆')}>
+              <View style={[styles.navIcon, { backgroundColor: `${colors.warning}15` }]}>
+                <Icon name="trophy" size={20} color={colors.warning} />
+              </View>
+              <Text style={styles.navTitle}>Leaderboard</Text>
+              <Text style={styles.navSubtitle}>Top performers</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -367,6 +386,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     backgroundColor: '#F8F9FA',
+    paddingTop: 10,
   },
 
   // Leaderboard Section
@@ -674,6 +694,112 @@ const styles = StyleSheet.create({
     fontFamily: 'SF Pro Text',
     textAlign: 'center',
     lineHeight: 14,
+  },
+
+  // New Styles for Enhanced Fun Zone
+  descriptionSection: {
+    paddingHorizontal: 15,
+    marginBottom: 20,
+  },
+
+  descriptionCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 0.5,
+    borderColor: colors.border,
+  },
+
+  iconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+
+  descriptionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginLeft: 12,
+  },
+
+  descriptionText: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+
+  navigationSection: {
+    paddingHorizontal: 15,
+    marginBottom: 25,
+  },
+
+  navigationGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 15,
+  },
+
+  navCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    flex: 0.48,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 0.5,
+    borderColor: colors.border,
+  },
+
+  navIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+
+  navTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+
+  navSubtitle: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: `${colors.primary}08`,
+    borderRadius: 12,
+  },
+
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
+    marginRight: 6,
   },
 });
 

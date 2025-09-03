@@ -1,116 +1,180 @@
-// src/services/eventService.ts
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-export const API_BASE_URL = 'https://app-backend-production-31a4.up.railway.app/api';
-
-// Types for Event data structure
-export interface Event {
+import { API_BASE_URL } from '../config/api';
+// import { API_BASE_URL } from './authService';
+export interface User {
   _id: string;
-  id?: string;
-  title: string;
-  description: string;
-  location?: string;
-  status: 'active' | 'completed' | 'cancelled';
-  createdAt: string;
-  startDate?: string;
-  endDate?: string;
-  registeredCount?: number;
-  userAssigned?: Array<{
-    _id: string;
-    fname: string;
-    lname: string;
-    userLogo?: string;
-  }>;
-  sessions: Array<{
-    title: string;
-    startTime: string;
-    endTime: string;
-  }>;
+  username: string;
+  profile_picture: string;
 }
 
-// Helper function to get auth headers
-const getAuthHeaders = async () => {
-  const token = await AsyncStorage.getItem('userToken');
-  return {
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
-  };
+export interface Comment {
+  _id: string;
+  user: User;
+  text: string;
+  created_at: string | Date;
+}
+
+export interface Post {
+  _id: string;
+  competition_id: string;
+  user: User;
+  media_url: string;
+  caption: string;
+  likes_count: number;
+  comments_count: number;
+  created_at: string | Date;
+  has_liked?: boolean;
+}
+
+export interface Competition {
+  _id: string;
+  name: string;
+  description: string;
+  status: 'active' | 'completed' | 'cancelled';
+  start_date: string | Date;
+}
+
+export const getAllCompetitions = async (status?: string) => {
+  try {
+    const url = status && status !== 'all' 
+      ? `/event/competitions?status=${status}`
+      : '/event/competitions';
+    
+    const res = await axios.get(`${API_BASE_URL}${url}`);
+    console.log('Get competitions response:', res.data);
+    return res.data.data || [];
+  } catch (error) {
+    console.error('Get competitions error:', error.response?.data || error.message);
+    return [];
+  }
 };
 
-// Get all events
-export const getAllEvents = async (status?: string) => {
-  const headers = await getAuthHeaders();
-  const url = status ? `${API_BASE_URL}/event?status=${status}` : `${API_BASE_URL}/event`;
-  const res = await axios.get(url, { headers });
-  
-  // Handle backend response format
-  const backendEvents = res.data?.data?.events || res.data?.events || res.data || [];
-  
-  // Transform backend format to frontend format
-  const transformedEvents = backendEvents.map((event: any) => ({
-    ...event,
-    _id: event.id || event._id,
-    userAssigned: event.userAssigned || [],
-  }));
-  
-  return transformedEvents;
+export const getCompetitionById = async (competitionId: string) => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/event/competitions/${competitionId}`);
+    console.log('Get competition response:', res.data);
+    return res.data.data || null;
+  } catch (error) {
+    console.error('Get competition error:', error.response?.data || error.message);
+    return null;
+  }
 };
 
-// Get single event by ID
-export const getEventById = async (eventId: string) => {
-  const headers = await getAuthHeaders();
-  const res = await axios.get(`${API_BASE_URL}/event/${eventId}`, { headers });
-  
-  // Handle backend response format
-  const event = res.data?.data || res.data;
-  
-  // Transform backend format to frontend format
-  return {
-    ...event,
-    _id: event.id || event._id,
-    userAssigned: event.userAssigned || [],
-  };
+export const getPostsForCompetition = async (competitionId: string) => {
+  try {
+    console.log('Fetching posts for competition:', competitionId);
+    const res = await axios.get(`${API_BASE_URL}/event/competitions/${competitionId}/posts`);
+    console.log('Get posts response:', res.data);
+    return res.data.data || [];
+  } catch (error) {
+    console.error('Get posts error details:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      url: `${API_BASE_URL}/event/competitions/${competitionId}/posts`,
+      competitionId
+    });
+    return [];
+  }
 };
 
-// Create new event (Admin only)
-export const createEvent = async (eventData: any) => {
-  const headers = await getAuthHeaders();
-  const res = await axios.post(`${API_BASE_URL}/event`, eventData, { headers });
-  return res.data;
+export const createPost = async (competitionId: string, postData: {
+  media_url: string;
+  caption?: string;
+  user_id?: string;
+}) => {
+  try {
+    const userInfo = JSON.parse((await AsyncStorage.getItem('userInfo')) || '{}');
+    
+    // Use the first available user ID as fallback for testing
+    const fallbackUserId = '6891e8690184a10635d216a3';
+    const finalUserId = postData.user_id || userInfo._id || fallbackUserId;
+    
+    console.log('Creating post with data:', {
+      ...postData,
+      user_id: finalUserId,
+      competitionId,
+      userFromStorage: userInfo
+    });
+    
+    const res = await axios.post(`${API_BASE_URL}/event/competitions/${competitionId}/posts`, {
+      ...postData,
+      user_id: finalUserId
+    });
+    
+    console.log('Create post response:', res.data);
+    return res.data.data || null;
+  } catch (error) {
+    console.error('Create post error details:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      config: error.config
+    });
+    return null;
+  }
 };
 
-// Update event (Admin only)
-export const updateEvent = async (eventId: string, eventData: any) => {
-  const headers = await getAuthHeaders();
-  const res = await axios.put(`${API_BASE_URL}/event/${eventId}`, eventData, { headers });
-  return res.data;
+export const reactToPost = async (postId: string, userId?: string) => {
+  try {
+    const userInfo = JSON.parse((await AsyncStorage.getItem('userInfo')) || '{}');
+    const fallbackUserId = '6891e8690184a10635d216a3';
+    const finalUserId = userId || userInfo._id || fallbackUserId;
+    
+    const res = await axios.post(`${API_BASE_URL}/event/posts/${postId}/react`, {
+      userId: finalUserId
+    });
+    console.log('React to post response:', res.data);
+    return res.data.data || null;
+  } catch (error) {
+    console.error('React to post error:', error.response?.data || error.message);
+    return null;
+  }
 };
 
-// Delete event (Admin only)
-export const deleteEvent = async (eventId: string) => {
-  const headers = await getAuthHeaders();
-  const res = await axios.delete(`${API_BASE_URL}/event/${eventId}`, { headers });
-  return res.data;
+export const addCommentToPost = async (postId: string, text: string, userId?: string) => {
+  try {
+    const userInfo = JSON.parse((await AsyncStorage.getItem('userInfo')) || '{}');
+    const fallbackUserId = '6891e8690184a10635d216a3';
+    const finalUserId = userId || userInfo._id || fallbackUserId;
+    
+    const res = await axios.post(`${API_BASE_URL}/event/posts/${postId}/comments`, {
+      userId: finalUserId,
+      text
+    });
+    console.log('Add comment response:', res.data);
+    return res.data.data || null;
+  } catch (error) {
+    console.error('Add comment error:', error.response?.data || error.message);
+    return null;
+  }
 };
 
-// Join an event
-export const joinEvent = async (eventId: string) => {
-  const headers = await getAuthHeaders();
-  const res = await axios.post(`${API_BASE_URL}/event/${eventId}/join`, {}, { headers });
-  return res.data;
+export const getCommentsForPost = async (postId: string) => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/event/posts/${postId}/comments`);
+    console.log('Get comments response:', res.data);
+    return res.data.data || [];
+  } catch (error) {
+    console.error('Get comments error:', error.response?.data || error.message);
+    return [];
+  }
 };
 
-// Leave an event
-export const leaveEvent = async (eventId: string) => {
-  const headers = await getAuthHeaders();
-  const res = await axios.post(`${API_BASE_URL}/event/${eventId}/leave`, {}, { headers });
-  return res.data;
-};
-
-// Get user's events
-export const getUserEvents = async () => {
-  const headers = await getAuthHeaders();
-  const res = await axios.get(`${API_BASE_URL}/event/my-events`, { headers });
-  return res.data;
+export const createCompetition = async (competitionData: {
+  name: string;
+  description: string;
+  status?: 'active' | 'completed' | 'cancelled';
+  location?: string;
+  maxCapacity?: number;
+}) => {
+  try {
+    const res = await axios.post(`${API_BASE_URL}/event/admin/competitions`, competitionData);
+    console.log('Create competition response:', res.data);
+    return res.data.data || null;
+  } catch (error) {
+    console.error('Create competition error:', error.response?.data || error.message);
+    return null;
+  }
 };

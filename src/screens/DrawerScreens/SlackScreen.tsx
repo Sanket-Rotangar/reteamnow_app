@@ -87,7 +87,7 @@ interface Message {
   isEdited?: boolean;
 }
 
-const AnnouncementsScreen = () => {
+const SlackScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<string>('general');
   const [searchQuery, setSearchQuery] = useState('');
@@ -852,4 +852,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AnnouncementsScreen;
+export default SlackScreen;

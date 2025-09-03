@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Platform } from 'react-native';
 
 // Import screens according to requirements
 import HomeScreen from '../screens/TabScreens/HomeScreen';
@@ -20,57 +20,58 @@ import AttendanceScreen from '../screens/TabScreens/AttendanceScreen';
 import FunZoneStack from '../navigation/FunZoneStack';
 import SettingsStack from '../navigation/SettingsStack';
 import HealthStack from './HealthStack';
-import colors from '../config/colors'
+import { colors } from '../config/colors'
+import Icon from 'react-native-vector-icons/Ionicons';
 const Tab = createBottomTabNavigator();
 
-/**
- * Modern Color Palette for the app
- */
-// const colors = {
-//   primary: '#6366F1',      // Indigo - main brand color
-//   secondary: '#EC4899',    // Pink - accent color
-//   success: '#10B981',      // Green - success states
-//   warning: '#F59E0B',      // Amber - warning states
-//   background: '#F8FAFC',   // Light gray - background
-//   surface: '#FFFFFF',      // White - cards and surfaces
-//   text: '#1F2937',         // Dark gray - primary text
-//   textSecondary: '#6B7280', // Medium gray - secondary text
-//   border: '#E5E7EB',       // Light gray - borders
-//   inactive: '#9CA3AF',     // Gray - inactive elements
-// };
+const TabIcon = ({ route, focused }: any) => {
+  // Enhanced icon mapping with better design
+  const getIconConfig = () => {
+    switch (route.name) {
+      case 'HomeTab':
+        return {
+          name: focused ? 'home' : 'home-outline',
+          color: focused ? colors.primary : colors.inactive,
+          bgColor: focused ? `${colors.primary}15` : 'transparent',
+        };
+      case 'AttendanceTab':
+        return {
+          name: focused ? 'time' : 'time-outline',
+          color: focused ? colors.primary : colors.inactive,
+          bgColor: focused ? `${colors.primary}15` : 'transparent',
+        };
+      case 'HealthTab':
+        return {
+          name: focused ? 'fitness' : 'fitness-outline',
+          color: focused ? colors.primary : colors.inactive,
+          bgColor: focused ? `${colors.primary}15` : 'transparent',
+        };
+      case 'FunZoneTab':
+        return {
+          name: focused ? 'game-controller' : 'game-controller-outline',
+          color: focused ? colors.primary : colors.inactive,
+          bgColor: focused ? `${colors.primary}15` : 'transparent',
+        };
+      case 'SettingsTab':
+        return {
+          name: focused ? 'person-circle' : 'person-circle-outline',
+          color: focused ? colors.primary : colors.inactive,
+          bgColor: focused ? `${colors.primary}15` : 'transparent',
+        };
+      default:
+        return {
+          name: 'help-outline',
+          color: colors.inactive,
+          bgColor: 'transparent',
+        };
+    }
+  };
 
-/**
- * Custom Tab Icon Component
- * Renders appropriate icons for each tab with focus states
- */
-const TabIcon = ({ route, focused, color, size }: any) => {
-  let iconText: string;
-  
-  switch (route.name) {
-    case 'HomeTab':
-      iconText = '🏠';
-      break;
-    case 'AttendanceTab':
-      iconText = '⏰';
-      break;
-    case 'HealthTab':
-      iconText = '❤️';
-      break;
-    case 'FunZoneTab':
-      iconText = '🎉';
-      break;
-    case 'SettingsTab':
-      iconText = '⚙️';
-      break;
-    default:
-      iconText = '❓';
-  }
-  
+  const iconConfig = getIconConfig();
+
   return (
-    <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
-      <Text style={[styles.iconText, { color, fontSize: focused ? size + 2 : size }]}>
-        {iconText}
-      </Text>
+    <View style={[styles.iconContainer, { backgroundColor: iconConfig.bgColor }]}>
+      <Icon name={iconConfig.name} size={24} color={iconConfig.color} />
     </View>
   );
 };
@@ -79,9 +80,9 @@ const TabIcon = ({ route, focused, color, size }: any) => {
  * Tab icon renderer function factory
  * Creates tab icon component outside render cycle
  */
-const createTabIcon = (routeName: string) => ({ focused, color, size }: any) => {
+const createTabIcon = (routeName: string) => ({ focused }: any) => {
   const route = { name: routeName };
-  return <TabIcon route={route} focused={focused} color={color} size={size} />;
+  return <TabIcon route={route} focused={focused} />;
 };
 
 // Pre-create tab icon components outside render cycle
@@ -101,14 +102,18 @@ const BottomTabs = () => {
         // Remove default header since we'll implement custom ones in each screen
         headerShown: false,
         
-        // Custom tab bar styling for modern look
+        // Enhanced tab bar styling for professional look
         tabBarStyle: styles.tabBar,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.inactive,
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarIconStyle: styles.tabBarIcon,
         
-        // Custom tab bar icons using pre-created components
+        // Enhanced animations and interactions
+        tabBarHideOnKeyboard: true,
+        tabBarAllowFontScaling: false,
+        
+        // Custom tab bar icons with pre-created components
         tabBarIcon: (tabIcons as any)[route.name] || tabIcons.HomeTab,
       })}
     >
@@ -117,7 +122,7 @@ const BottomTabs = () => {
         name="HomeTab" 
         component={HomeScreen}
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: 'Dashboard',
           tabBarAccessibilityLabel: 'Navigate to Home dashboard'
         }}
       />
@@ -137,7 +142,7 @@ const BottomTabs = () => {
         name="HealthTab" 
         component={HealthStack}
         options={{
-          tabBarLabel: 'Health',
+          tabBarLabel: 'Fitness',
           tabBarAccessibilityLabel: 'Navigate to Fitness tracking'
         }}
       />
@@ -157,7 +162,7 @@ const BottomTabs = () => {
         name="SettingsTab" 
         component={SettingsStack}
         options={{
-          tabBarLabel: 'Settings',
+          tabBarLabel: 'Profile',
           tabBarAccessibilityLabel: 'Navigate to Settings and Profile'
         }}
       />
@@ -166,39 +171,42 @@ const BottomTabs = () => {
 };
 
 /**
- * Styles for modern bottom tab navigation
+ * Enhanced styles for professional bottom tab navigation
  */
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: colors.surface,
-    borderTopWidth: 1,
+    borderTopWidth: 0.5,
     borderTopColor: colors.border,
-    paddingTop: 8,
-    paddingBottom: 8,
-    height: 70,
+    paddingTop: 12,
+    paddingBottom: 20,
+    paddingHorizontal: 8,
+    height: 85,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: -2,
+      height: -4,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowRadius: 12,
+    elevation: 12,
   },
   tabBarLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    marginTop: 4,
+    marginTop: 6,
+    letterSpacing: 0.2,
   },
   tabBarIcon: {
-    marginBottom: -4,
+    marginBottom: -2,
   },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginBottom: 2,
   },
   activeIconContainer: {
     backgroundColor: `${colors.primary}15`, // 15% opacity

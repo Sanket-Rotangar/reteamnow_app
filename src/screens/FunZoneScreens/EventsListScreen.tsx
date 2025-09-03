@@ -1,128 +1,44 @@
-/**
- * Events List Screen - Browse and Access Event Photo Competitions
- * Following the same design principles as other screens
- * Features: List of active events, navigation to event details
- * Role-based access: All users can view and participate in events
- */
-
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
-import { getAllEvents } from '../../services/eventService';
+import { getAllCompetitions, Competition } from '../../services/eventService';
 
-// Types
-interface Event {
-  _id: string;
-  title: string;
-  description: string;
-  location?: string;
-  status: 'active' | 'completed' | 'cancelled';
-  createdAt: string;
-  userAssigned: Array<{
-    _id: string;
-    fname: string;
-    lname: string;
-    userLogo?: string;
-  }>;
-  sessions: Array<{
-    title: string;
-    startTime: string;
-    endTime: string;
-  }>;
+// --- Reusable Component for a single competition card ---
+interface CompetitionCardProps {
+  competition: Competition;
+  onPress: (competition: Competition) => void;
 }
 
-interface Props {
-  navigation: any;
-}
-
-const EventsListScreen: React.FC<Props> = ({ navigation }) => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<
-    'active' | 'completed' | 'all'
-  >('active');
-
-  // Fetch events from API
-  const fetchEvents = useCallback(async () => {
-    try {
-      setLoading(true);
-      
-      // Use the event service to fetch events
-      const apiEvents = await getAllEvents(
-        activeFilter === 'all' ? undefined : activeFilter,
-      );
-      
-      // Ensure we have an array
-      const eventsArray = Array.isArray(apiEvents) ? apiEvents : [];
-      setEvents(eventsArray);
-    } catch (error) {
-      console.error('Fetch events error:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to load events. Please check your connection.',
-      });
-
-    } finally {
-      setLoading(false);
-    }
-  }, [activeFilter]);
-
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchEvents();
-    setRefreshing(false);
-  }, [fetchEvents]);
-
-  const handleEventPress = (event: Event) => {
-    navigation.navigate('EventPhotos', {
-      eventId: event._id,
-      eventTitle: event.title,
-    });
-  };
-
+const CompetitionCard: React.FC<CompetitionCardProps> = ({ competition, onPress }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return '#34C759';
-      case 'completed':
-        return '#8E8E93';
-      case 'cancelled':
-        return '#FF3B30';
-      default:
-        return '#8E8E93';
+      case 'active': return '#34C759';
+      case 'completed': return '#8E8E93';
+      case 'cancelled': return '#FF3B30';
+      default: return '#8E8E93';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'Active';
-      case 'completed':
-        return 'Completed';
-      case 'cancelled':
-        return 'Cancelled';
-      default:
-        return status;
+      case 'active': return 'Active';
+      case 'completed': return 'Completed';
+      case 'cancelled': return 'Cancelled';
+      default: return status;
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | Date) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       month: 'short',
@@ -131,68 +47,148 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
     });
   };
 
-  const renderEventCard = (event: Event) => (
+  return (
     <TouchableOpacity
-      key={event._id}
-      style={styles.eventCard}
+      style={styles.competitionCard}
       activeOpacity={0.8}
-      onPress={() => handleEventPress(event)}
+      onPress={() => onPress(competition)}
     >
-      <View style={styles.eventHeader}>
-        <View style={styles.eventTitleSection}>
-          <Text style={styles.eventTitle}>{event.title}</Text>
-          <View style={styles.eventMeta}>
+      {/* Competition Header */}
+      <View style={styles.competitionHeader}>
+        <View style={styles.competitionTitleSection}>
+          <Text style={styles.competitionTitle}>{competition.name}</Text>
+          <View style={styles.competitionMeta}>
             <View
               style={[
                 styles.statusBadge,
-                { backgroundColor: getStatusColor(event.status) },
+                { backgroundColor: getStatusColor(competition.status) },
               ]}
             >
               <Text style={styles.statusText}>
-                {getStatusText(event.status)}
+                {getStatusText(competition.status)}
               </Text>
             </View>
-            <Text style={styles.eventDate}>{formatDate(event.createdAt)}</Text>
+            <Text style={styles.competitionDate}>{formatDate(competition.start_date)}</Text>
           </View>
         </View>
         <Icon name="chevron-forward" size={20} color="#8E8E93" />
       </View>
 
-      <Text style={styles.eventDescription} numberOfLines={2}>
-        {event.description}
+      {/* Competition Description */}
+      <Text style={styles.competitionDescription} numberOfLines={2}>
+        {competition.description}
       </Text>
 
-      {event.location && (
-        <View style={styles.locationContainer}>
-          <Icon name="location" size={14} color="#8E8E93" />
-          <Text style={styles.locationText}>{event.location}</Text>
-        </View>
-      )}
-
-      <View style={styles.eventFooter}>
+      {/* Competition Footer */}
+      <View style={styles.competitionFooter}>
         <View style={styles.participantInfo}>
           <Icon name="camera" size={16} color="#007AFF" />
           <Text style={styles.participantText}>Photo Competition</Text>
         </View>
-        <View style={styles.eventActions}>
+        <View style={styles.competitionActions}>
           <Icon name="images" size={16} color="#8E8E93" />
           <Icon name="trophy" size={16} color="#FFD700" />
         </View>
       </View>
     </TouchableOpacity>
   );
+};
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Loading events...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+// --- List Header, Footer, and Empty Components (Moved out of render) ---
+const ListEmptyComponent = ({ activeFilter }: { activeFilter: 'active' | 'completed' | 'all' }) => (
+  <View style={styles.emptyContainer}>
+    <Icon name="calendar-outline" size={48} color="#8E8E93" />
+    <Text style={styles.emptyTitle}>No Competitions Found</Text>
+    <Text style={styles.emptySubtitle}>
+      {activeFilter === 'active'
+        ? 'No active competitions at the moment'
+        : `No ${activeFilter} competitions found`}
+    </Text>
+  </View>
+);
 
+const ListHeaderComponent = ({ activeFilter, setActiveFilter }: { activeFilter: 'active' | 'completed' | 'all', setActiveFilter: (filter: 'active' | 'completed' | 'all') => void }) => (
+  <View>
+    <View style={styles.infoCard}>
+      <Icon name="camera" size={32} color="#007AFF" />
+      <Text style={styles.infoTitle}>How it works</Text>
+      <Text style={styles.infoText}>
+        Participate in photo competitions by uploading event photos. Get
+        likes and reactions from colleagues, and compete on the
+        leaderboard!
+      </Text>
+    </View>
+    <View style={styles.filterContainer}>
+      {(['active', 'completed', 'all'] as const).map(filter => (
+        <TouchableOpacity
+          key={filter}
+          style={[
+            styles.filterTab,
+            activeFilter === filter && styles.activeFilterTab,
+          ]}
+          onPress={() => setActiveFilter(filter)}
+        >
+          <Text
+            style={[
+              styles.filterTabText,
+              activeFilter === filter && styles.activeFilterTabText,
+            ]}
+          >
+            {filter.charAt(0).toUpperCase() + filter.slice(1)}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  </View>
+);
+
+// --- Main Screen Component ---
+interface Props {
+  navigation: any;
+}
+
+const CompetitionsListScreen: React.FC<Props> = ({ navigation }) => {
+  const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'active' | 'completed' | 'all'>('active');
+
+  const fetchCompetitions = useCallback(async () => {
+    try {
+      const apiCompetitions = await getAllCompetitions(
+        activeFilter === 'all' ? undefined : activeFilter,
+      );
+      const competitionsArray = Array.isArray(apiCompetitions) ? apiCompetitions : [];
+      setCompetitions(competitionsArray);
+    } catch (error) {
+      console.error('Fetch competitions error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to load competitions. Please check your connection.',
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [activeFilter]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchCompetitions();
+  }, [fetchCompetitions]);
+
+  useEffect(() => {
+    fetchCompetitions();
+  }, [fetchCompetitions]);
+
+  const handleCompetitionPress = (competition: Competition) => {
+    navigation.navigate('CompetitionDetails', {
+      competitionId: competition._id,
+      competitionTitle: competition.name,
+    });
+  };
+  
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -204,7 +200,7 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
           <Icon name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Event Photos</Text>
+          <Text style={styles.headerTitle}>Competitions</Text>
           <Text style={styles.headerSubtitle}>Photo Competitions</Text>
         </View>
         <View style={styles.headerActions}>
@@ -212,91 +208,48 @@ const EventsListScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Filter Tabs */}
-      <View style={styles.filterContainer}>
-        {(['active', 'completed', 'all'] as const).map(filter => (
-          <TouchableOpacity
-            key={filter}
-            style={[
-              styles.filterTab,
-              activeFilter === filter && styles.activeFilterTab,
-            ]}
-            onPress={() => setActiveFilter(filter)}
-          >
-            <Text
-              style={[
-                styles.filterTabText,
-                activeFilter === filter && styles.activeFilterTabText,
-              ]}
-            >
-              {filter.charAt(0).toUpperCase() + filter.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Events List */}
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {events.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Icon name="calendar-outline" size={48} color="#8E8E93" />
-            <Text style={styles.emptyTitle}>No Events Found</Text>
-            <Text style={styles.emptySubtitle}>
-              {activeFilter === 'active'
-                ? 'No active events at the moment'
-                : `No ${activeFilter} events found`}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.eventsContainer}>
-            {events.map(renderEventCard)}
-          </View>
-        )}
-
-        {/* Info Section */}
-        <View style={styles.infoSection}>
-          <View style={styles.infoCard}>
-            <Icon name="camera" size={32} color="#007AFF" />
-            <Text style={styles.infoTitle}>How it works</Text>
-            <Text style={styles.infoText}>
-              Participate in photo competitions by uploading event photos. Get
-              likes and reactions from colleagues, and compete on the
-              leaderboard!
-            </Text>
-          </View>
+      {/* Main Content using FlatList */}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Loading competitions...</Text>
         </View>
-      </ScrollView>
+      ) : (
+        <FlatList
+          data={competitions}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <CompetitionCard competition={item} onPress={handleCompetitionPress} />
+          )}
+          contentContainerStyle={styles.eventsContainer}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListHeaderComponent={() => <ListHeaderComponent activeFilter={activeFilter} setActiveFilter={setActiveFilter} />}
+          ListEmptyComponent={() => <ListEmptyComponent activeFilter={activeFilter} />}
+        />
+      )}
     </SafeAreaView>
   );
 };
 
-// Styles following the same design pattern
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
-
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   loadingText: {
     marginTop: 16,
     fontSize: 16,
     color: '#8E8E93',
-    fontFamily: 'SF Pro Text',
   },
-
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -309,7 +262,6 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
-
   backButton: {
     width: 40,
     height: 40,
@@ -318,25 +270,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#F2F2F7',
   },
-
   headerContent: {
     flex: 1,
     marginLeft: 12,
   },
-
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#1D1D1F',
-    fontFamily: 'SF Pro Display',
   },
-
   headerSubtitle: {
     fontSize: 14,
     color: '#8E8E93',
-    fontFamily: 'SF Pro Text',
   },
-
   headerActions: {
     width: 40,
     height: 40,
@@ -345,13 +291,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#F2F2F7',
   },
-
-  // Filter Tabs
   filterContainer: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
-    marginVertical: 8,
+    marginBottom: 8,
     borderRadius: 12,
     padding: 4,
     shadowColor: '#000000',
@@ -360,41 +304,28 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
-
   filterTab: {
     flex: 1,
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
   },
-
   activeFilterTab: {
     backgroundColor: '#007AFF',
   },
-
   filterTabText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#8E8E93',
-    fontFamily: 'SF Pro Text',
   },
-
   activeFilterTabText: {
     color: '#FFFFFF',
   },
-
-  // Content
-  content: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-
   eventsContainer: {
-    paddingTop: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
-
-  // Event Card
-  eventCard: {
+  competitionCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
@@ -407,127 +338,95 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: '#E5E5EA',
   },
-
-  eventHeader: {
+  competitionHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-
-  eventTitleSection: {
+  competitionTitleSection: {
     flex: 1,
     marginRight: 12,
   },
-
-  eventTitle: {
+  competitionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1D1D1F',
-    fontFamily: 'SF Pro Display',
     marginBottom: 8,
   },
-
-  eventMeta: {
+  competitionMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
   },
-
   statusText: {
     fontSize: 11,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: 'SF Pro Text',
   },
-
-  eventDate: {
+  competitionDate: {
     fontSize: 12,
     color: '#8E8E93',
-    fontFamily: 'SF Pro Text',
   },
-
-  eventDescription: {
+  competitionDescription: {
     fontSize: 14,
     color: '#8E8E93',
-    fontFamily: 'SF Pro Text',
     lineHeight: 20,
     marginBottom: 12,
   },
-
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
     gap: 6,
   },
-
   locationText: {
     fontSize: 13,
     color: '#8E8E93',
-    fontFamily: 'SF Pro Text',
   },
-
-  eventFooter: {
+  competitionFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-
   participantInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-
   participantText: {
     fontSize: 13,
     fontWeight: '600',
     color: '#007AFF',
-    fontFamily: 'SF Pro Text',
   },
-
-  eventActions: {
+  competitionActions: {
     flexDirection: 'row',
     gap: 12,
   },
-
-  // Empty State
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 80,
   },
-
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#8E8E93',
-    fontFamily: 'SF Pro Display',
     marginTop: 16,
     marginBottom: 8,
   },
-
   emptySubtitle: {
     fontSize: 14,
     color: '#8E8E93',
-    fontFamily: 'SF Pro Text',
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 32,
   },
-
-  // Info Section
-  infoSection: {
-    paddingVertical: 24,
-  },
-
   infoCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
@@ -538,24 +437,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+    marginBottom: 16,
   },
-
   infoTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1D1D1F',
-    fontFamily: 'SF Pro Display',
     marginTop: 12,
     marginBottom: 8,
   },
-
   infoText: {
     fontSize: 14,
     color: '#8E8E93',
-    fontFamily: 'SF Pro Text',
     textAlign: 'center',
     lineHeight: 20,
   },
 });
 
-export default EventsListScreen;
+export default CompetitionsListScreen;

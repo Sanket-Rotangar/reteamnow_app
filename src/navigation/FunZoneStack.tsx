@@ -3,9 +3,9 @@
  * 
  * Handles navigation within the Fun Zone tab including:
  * - FunZoneScreen (main tab screen)
- * - EventsListScreen (browse events)
- * - EventPhotosScreen (photo gallery and leaderboard)
- * - AdminEventCreation (admin event creation)
+ * - EventsListScreen (browse competitions)
+ * - EventPhotosScreen (competition details/photo gallery)
+ * - CreatePostScreen (create new posts)
  */
 
 import React from 'react';
@@ -13,6 +13,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import FunZoneScreen from '../screens/TabScreens/FunZoneScreen';
 import EventsListScreen from '../screens/FunZoneScreens/EventsListScreen';
 import EventPhotosScreen from '../screens/FunZoneScreens/EventPhotosScreen';
+import CreatePostScreen from '../screens/FunZoneScreens/CreatePostScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -35,15 +36,23 @@ export default function FunZoneStack() {
         name="EventsList"
         component={EventsListScreen}
         options={{ 
-          title: 'Event Photos',
+          title: 'Competitions',
           headerShown: false 
         }}
       />
       <Stack.Screen
-        name="EventPhotos"
+        name="CompetitionDetails"
         component={EventPhotosScreen}
         options={{ 
-          title: 'Photo Competition',
+          title: 'Competition Details',
+          headerShown: false 
+        }}
+      />
+      <Stack.Screen
+        name="CreatePost"
+        component={CreatePostScreen}
+        options={{ 
+          title: 'Create Post',
           headerShown: false 
         }}
       />

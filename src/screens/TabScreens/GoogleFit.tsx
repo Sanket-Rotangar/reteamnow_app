@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import {
   StyleSheet,
   Text,
@@ -15,12 +15,9 @@ import ProgressRings from '../../components/ProgressRings';
 import {
   requestHealthPermissions,
   checkAvailability,
-  readSteps,
-  readHeartRate,
-  readTotalCaloriesBurned,
-  readDistance,
 } from '../../services/healthConnectService';
 import Toast from 'react-native-toast-message';
+import { HealthContext } from '../../context/healthContext';
 
 // Define the types for the props and state
 type DailyGoal = {
@@ -148,13 +145,38 @@ const dailyGoalsData: DailyGoal[] = [
 
 // --- Main Component ---
 const GoogleFit: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const [steps, setSteps] = useState(0);
-  const [heartRate, setHeartRate] = useState(0);
-  const [distance, setDistance] = useState(0);
-  const [calories, setCalories] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const healthContext = useContext(HealthContext);
   const [isAvailable, setIsAvailable] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Use health context data
+  const { healthData, loading, refreshHealthData } = healthContext || {
+    healthData: { steps: 0, heartRate: 0, calories: 0, distance: 0 },
+    loading: false,
+    refreshHealthData: async () => {},
+  };
+
+  const { steps, heartRate, calories, distance } = healthData;
+
+  const fetchHealthData = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const startTime = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+      const endTime = new Date().toISOString();
+
+      // Use the health context to refresh data
+      await refreshHealthData(startTime, endTime);
+    } catch (error) {
+      console.error('Error fetching health data:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to fetch health data. Please try again.',
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshHealthData]);
 
   // Check for Health Connect availability and fetch data
   useEffect(() => {
@@ -166,43 +188,12 @@ const GoogleFit: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
     };
     checkStatus();
-  }, []);
-
-  const fetchHealthData = async () => {
-    setLoading(true);
-    try {
-      const startTime = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-      const endTime = new Date().toISOString();
-
-      const [stepsTotal, heartRateAvg, caloriesTotal, distanceTotal] =
-        await Promise.all([
-          readSteps(startTime, endTime),
-          readHeartRate(startTime, endTime),
-          readTotalCaloriesBurned(startTime, endTime),
-          readDistance(startTime, endTime),
-        ]);
-
-      setSteps(stepsTotal);
-      setHeartRate(heartRateAvg);
-      setCalories(caloriesTotal);
-      setDistance(distanceTotal);
-    } catch (error) {
-      console.error('Error fetching health data:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to fetch health data. Please try again.',
-      });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  }, [fetchHealthData]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchHealthData();
-  }, []);
+  }, [fetchHealthData]);
 
   const handlePermissionRequest = async () => {
     const granted = await requestHealthPermissions();
@@ -306,7 +297,7 @@ const GoogleFit: React.FC<{ navigation: any }> = ({ navigation }) => {
         {/* Compact Activity Metrics */}
         <View style={styles.compactMetrics}>
           <View style={styles.compactMetricItem}>
-            <View style={[styles.compactMetricIcon, { backgroundColor: '#e9f6eb' }]}>
+            <View style={[styles.compactMetricIcon, styles.compactMetricIconGreen]}>
               <Ionicons name="walk" size={20} color="#30D158" />
             </View>
             <Text style={styles.compactMetricValue}>
@@ -315,7 +306,7 @@ const GoogleFit: React.FC<{ navigation: any }> = ({ navigation }) => {
             <Text style={styles.compactMetricLabel}>km</Text>
           </View>
           <View style={styles.compactMetricItem}>
-            <View style={[styles.compactMetricIcon, { backgroundColor: '#e6f0ff' }]}>
+            <View style={[styles.compactMetricIcon, styles.compactMetricIconBlue]}>
               <Ionicons name="time" size={20} color="#007AFF" />
             </View>
             <Text style={styles.compactMetricValue}>
@@ -324,7 +315,7 @@ const GoogleFit: React.FC<{ navigation: any }> = ({ navigation }) => {
             <Text style={styles.compactMetricLabel}>min</Text>
           </View>
           <View style={styles.compactMetricItem}>
-            <View style={[styles.compactMetricIcon, { backgroundColor: '#fff4e6' }]}>
+            <View style={[styles.compactMetricIcon, styles.compactMetricIconOrange]}>
               <Ionicons name="footsteps" size={20} color="#FF9500" />
             </View>
             <Text style={styles.compactMetricValue}>
@@ -685,6 +676,17 @@ const styles = StyleSheet.create({
   },
   dailyGoalTextAchieved: {
     color: '#4caf50',
+  },
+
+  // Style constants for inline styles
+  compactMetricIconGreen: {
+    backgroundColor: '#e9f6eb',
+  },
+  compactMetricIconBlue: {
+    backgroundColor: '#e6f0ff',
+  },
+  compactMetricIconOrange: {
+    backgroundColor: '#fff4e6',
   },
 });
 
