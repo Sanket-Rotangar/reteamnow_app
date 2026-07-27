@@ -23,8 +23,7 @@
 - [Installation](#-installation)
 - [Environment Variables](#-environment-variables)
 - [Running Locally](#-running-locally)
-- [Screenshots](#-screenshots)
-- [Demo](#-demo)
+- [Screenshots](#-screenshots) <!-- - [Demo](#-demo) -->
 - [API Reference](#-api-reference)
 - [Future Improvements](#-future-improvements)
 - [Lessons Learned](#-lessons-learned)
@@ -365,5 +364,5 @@ The app communicates with a RESTful backend API at the configured `API_BASE_URL`
 ---
 
 <div align="center">
-Thank you for checking out **ReteamNow**!
+Thank you for checking out ReteamNow!
 </div>
