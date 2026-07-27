@@ -115,14 +115,6 @@ const EditProfileScreen = () => {
 
     try {
       // TODO: Implement API call to save profile data
-      // Prepare data for API - convert comma-separated strings to arrays
-      const updatedData = {
-        ...formData,
-        teamTitle: formData.teamTitle.split(',').map(item => item.trim()).filter(item => item),
-        workspaceName: formData.workspaceName.split(',').map(item => item.trim()).filter(item => item),
-      };
-
-      // For now, show success message
       await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
 
       Toast.show({

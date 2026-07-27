@@ -63,7 +63,6 @@ export const AuthProvider = ({ children }: any) => {
     setUserInfo(null);
     await AsyncStorage.removeItem('userToken');
     await AsyncStorage.removeItem('userInfo');
-    console.log('User logged out');
   };
 
   const register = async (

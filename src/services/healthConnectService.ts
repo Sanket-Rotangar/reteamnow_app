@@ -28,7 +28,7 @@ export const initializeHealthConnect = async () => {
     }
     return true;
   } catch (error) {
-    console.error('Error initializing Health Connect:', error);
+    console.warn('Error initializing Health Connect:', error);
     return false;
   }
 };
@@ -39,7 +39,7 @@ export const requestHealthPermissions = async () => {
     const grantedPermissions = await requestPermission(PERMISSIONS);
     return grantedPermissions;
   } catch (error) {
-    console.error('Error requesting Health Connect permissions:', error);
+    console.warn('Error requesting Health Connect permissions:', error);
     return [];
   }
 };
@@ -74,7 +74,7 @@ export const readSteps = async (startTime: string, endTime: string) => {
     const stepsCount = (result as any)?.COUNT_TOTAL || 0;
     return stepsCount;
   } catch (error) {
-    console.error('Error aggregating steps data:', error);
+    console.warn('Error aggregating steps data:', error);
     return 0;
   }
 };
@@ -97,7 +97,7 @@ export const readHeartRate = async (startTime: string, endTime: string) => {
     const avgHeartRate = (result as any)?.BPM_AVG || 75;
     return avgHeartRate;
   } catch (error) {
-    console.error('Error aggregating heart rate data:', error);
+    console.warn('Error aggregating heart rate data:', error);
     return 0;
   }
 };
@@ -124,7 +124,7 @@ export const readTotalCaloriesBurned = async (
     const roundedCalories = Math.round(totalCalories);
     return roundedCalories; // Round to whole number
   } catch (error) {
-    console.error('Error aggregating total calories data:', error);
+    console.warn('Error aggregating total calories data:', error);
     return 0;
   }
 };
@@ -147,7 +147,7 @@ export const readDistance = async (startTime: string, endTime: string) => {
     const totalDistance = (result as any)?.DISTANCE.inKilometers || 0;
     return totalDistance;
   } catch (error) {
-    console.error('Error aggregating distance data:', error);
+    console.warn('Error aggregating distance data:', error);
     return 0;
   }
 };

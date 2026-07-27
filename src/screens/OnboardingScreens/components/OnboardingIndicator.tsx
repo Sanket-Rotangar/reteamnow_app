@@ -1,4 +1,4 @@
-port React, { memo } from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { colors } from '../../../config/colors';
 import { fontSizes, fontWeights } from '../../../config/typography';

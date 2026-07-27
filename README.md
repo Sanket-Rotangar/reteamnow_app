@@ -1,107 +1,369 @@
-# Project Report: Reteamnow-app
+# ReteamNow — Employee Engagement App
 
-## Overview
-This report provides a summary of the project structure, key files, and their purposes to help future developers understand and extend the Reteamnow-app project.
+<div align="center">
 
----
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![React Native](https://img.shields.io/badge/React_Native-0.80-61DAFB?style=flat-square&logo=react)](https://reactnative.dev/)
+[![Metro Bundler](https://img.shields.io/badge/Bundler-Metro-000?style=flat-square)](https://metrobundler.dev/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
 
-## 1. Project Structure
+**Connect. Collaborate. Thrive.** — A cross-platform mobile application designed to boost employee engagement through attendance tracking, health & fitness integration, team competitions, and social features.
 
-- **Root Files:**
-  - `App.tsx`, `index.js`: Main entry points for the React Native app.
-  - `package.json`, `tsconfig.json`, `babel.config.js`, `jest.config.js`: Configuration files for dependencies, TypeScript, Babel, and Jest.
-  - `app.json`: App configuration for React Native.
-  - `metro.config.js`, `react-native.config.js`: Metro and React Native custom configs.
-  - `Gemfile`: Ruby dependencies (for iOS builds).
-  - `additions.md`: Documentation or notes.
-
-- **Folders:**
-  - `android/`, `ios/`: Native code and configuration for Android and iOS platforms.
-  - `assets/`: Images and bootsplash assets.
-  - `public/`: Static files and images for web (if used).
-  - `src/`: Main source code (see below for details).
-  - `__tests__/`: Test files for the app.
+</div>
 
 ---
 
-## 2. Source Code (`src/`)
+## 📋 Table of Contents
 
-- **components/**: Reusable UI components (e.g., `ImagePicker.tsx`, `LoginIllustration.tsx`).
-- **config/**: App-wide configuration (API endpoints, colors, theme, typography).
-- **context/**: React Contexts for state management (attendance, auth, health, leaderboard).
-- **data/**: Mock data (e.g., `mockEventPhotos.ts`).
-- **navigation/**: Navigation stacks and tab navigators (e.g., `AppStack.tsx`, `RootNavigator.tsx`).
-- **screens/**: Screen components grouped by feature (Auth, Drawer, FunZone, HealthTrack, Onboarding, Settings, Tab).
-- **services/**: Business logic and API calls (e.g., `attendanceService.ts`, `authService.ts`).
-- **types/**: TypeScript type definitions (e.g., `env.d.ts`).
-
----
-
-## 3. Key Files & Their Roles
-
-- **App.tsx**: Main app component, sets up navigation and context providers.
-- **src/navigation/**: Organizes navigation logic for different app sections.
-- **src/context/**: Manages global state for features like authentication and attendance.
-- **src/services/**: Handles API requests and business logic for features.
-- **src/screens/**: Contains UI screens for each app feature.
-- **src/components/**: Contains reusable UI elements.
+- [Overview](#-overview)
+- [Features](#-features)
+- [Architecture](#-architecture)
+- [Tech Stack](#-tech-stack)
+- [Folder Structure](#-folder-structure)
+- [Installation](#-installation)
+- [Environment Variables](#-environment-variables)
+- [Running Locally](#-running-locally)
+- [Screenshots](#-screenshots)
+- [Demo](#-demo)
+- [API Reference](#-api-reference)
+- [Future Improvements](#-future-improvements)
+- [Lessons Learned](#-lessons-learned)
 
 ---
 
-## 4. Adding New Features
+## 🚀 Overview
 
-- **Add new screens** in `src/screens/` and update navigation in `src/navigation/`.
-- **Add new services** in `src/services/` for API/business logic.
-- **Add new context** in `src/context/` if global state is needed.
-- **Add new components** in `src/components/` for reusable UI.
-- **Update types** in `src/types/` as needed.
+ReteamNow is a **React Native** mobile application that helps organizations foster a connected, healthy, and engaged workforce. It integrates attendance management, health tracking via Google Health Connect, team competitions ("Fun Zone"), announcements, and real-time team chat — all in one polished, professionally designed interface.
 
 ---
 
-## 5. Testing
+## ✨ Features
 
-- Tests are located in `__tests__/`.
-- Use Jest for unit testing.
+### 📊 Dashboard & Attendance
+- Real-time attendance check-in/check-out with backend validation
+- Monthly attendance analytics with streak tracking
+- Swipeable card-based UI for quick data insights
 
----
+### ❤️ Health & Fitness
+- Integration with **Google Health Connect** (Steps, Heart Rate, Calories, Distance)
+- Animated progress rings for daily fitness goals
+- Detail screens for each health metric with historical charts
 
-## 6. Platform-Specific Notes
+### 🎮 Fun Zone — Competitions & Social
+- Create and join team competitions with photo/video posts
+- Like, comment, and share posts
+- View competition leaderboards and galleries
 
-- **Android:** Native code/config in `android/`.
-- **iOS:** Native code/config in `ios/`.
-- **Assets:** Place images and bootsplash assets in `assets/`.
+### 📢 Announcements & Communication
+- Company-wide announcements with read/unread tracking
+- **ReteamChat** — Slack-inspired team messaging channels
+- Role-based admin panel for content moderation
 
----
-
-## 7. Setup & Development
-
-- Install dependencies: `npm install`
-- Run app: `npx react-native run-android` or `npx react-native run-ios`
-- Run tests: `npm test`
-
----
-
-## 8. Recommendations
-
-- Follow existing folder structure for new features.
-- Write clear documentation for new modules.
-- Keep types up-to-date for maintainability.
-- Use context for global state, services for API/business logic, and navigation for screen management.
+### 👤 User Management
+- Multi-step registration with validation
+- Profile view and editing
+- Role-based access control (Admin/Employee)
 
 ---
 
-## 9. Useful References
+## 🏗 Architecture
 
-- [React Native Documentation](https://reactnative.dev/docs/getting-started)
-- [Jest Testing](https://jestjs.io/docs/getting-started)
-- [React Navigation](https://reactnavigation.org/docs/getting-started)
+```
+┌──────────────────────────────────────────────────┐
+│                   App.tsx                         │
+│         (SafeAreaProvider + Navigation)           │
+└──────────────────┬───────────────────────────────┘
+                   │
+    ┌──────────────┴──────────────┐
+    ▼                             ▼
+┌──────────────┐          ┌──────────────┐
+│  Auth Stack  │          │  App Stack   │
+│ (Login/Reg)  │          │ (Drawer Nav) │
+└──────────────┘          └──────┬───────┘
+                                 │
+                    ┌────────────┴────────────┐
+                    ▼                         ▼
+           ┌─────────────────┐       ┌─────────────────┐
+           │   Bottom Tabs   │       │  Drawer Screens │
+           │ (Dashboard,     │       │ (Settings,       │
+           │  Attendance,    │       │  Announcements,  │
+           │  Fitness,       │       │  Admin Panel,    │
+           │  FunZone,       │       │  ReteamChat)     │
+           │  Profile)       │       │                  │
+           └────────┬────────┘       └─────────────────┘
+                    │
+     ┌──────────────┼──────────────┐
+     ▼              ▼              ▼
+┌──────────┐ ┌──────────┐ ┌──────────────┐
+│ Home     │ │Attendance│ │ Health Stack │
+│ (Pager)  │ │ (Tabs)   │ │ (Details)    │
+└──────────┘ └──────────┘ └──────────────┘
+```
+
+### Design Decisions
+
+- **Context-based State Management**: Auth and health state are managed via React Context to avoid prop drilling while keeping the architecture simple.
+- **Drawer + Bottom Tab Hybrid**: The drawer provides access to secondary screens (Announcements, Admin, Chat) while bottom tabs handle primary navigation.
+- **Health Connect Integration**: Direct integration with Android's Health Connect API for real-time fitness data without a middleman server.
+- **Animated Onboarding**: Smooth animated onboarding screens using React Native's `Animated` API to create a premium first-run experience.
+
+### Trade-offs
+
+| Decision | Trade-off |
+|----------|-----------|
+| React Context vs Redux | Simpler setup, but may cause unnecessary re-renders at scale |
+| Direct API calls in services | Less abstraction, but simpler to debug |
+| Inline styles with StyleSheet | No CSS-in-JS runtime cost, but less dynamic styling |
+| PagerView for dashboard cards | Great UX on mobile, but limited customization |
 
 ---
 
-## 10. Contact
+## 🛠 Tech Stack
 
-For questions, refer to the documentation or contact the original authors.
+| Technology | Purpose |
+|------------|---------|
+| **React Native 0.80** | Cross-platform mobile framework |
+| **TypeScript 5.0** | Type-safe development |
+| **React Navigation 7** | Navigation (Stack, Drawer, Bottom Tabs) |
+| **Axios** | HTTP client for REST API calls |
+| **react-native-health-connect** | Google Health Connect integration |
+| **react-native-reanimated** | Smooth animations |
+| **react-native-vector-icons** | Icon library (Ionicons) |
+| **react-native-linear-gradient** | Gradient backgrounds |
+| **react-native-bootsplash** | Splash screen animation |
+| **react-native-toast-message** | In-app notifications |
+| **react-native-gifted-charts** | Health metric charts |
+| **AsyncStorage** | Local persistence for auth tokens |
 
 ---
 
-*This report is intended to help future developers quickly understand and contribute to the Reteamnow-app project.*
+## 📁 Folder Structure
+
+```
+Reteamnow-app/
+├── android/               # Android native configuration
+├── ios/                   # iOS native configuration
+├── assets/                # Static assets
+│   ├── bootsplash/        # Boot splash screen assets
+│   ├── screenshots/       # App screenshots (add your own)
+│   ├── banner.png         # Repository banner placeholder
+│   ├── logo.png           # Project logo placeholder
+│   └── demo.gif           # Demo GIF placeholder
+├── src/
+│   ├── components/        # Reusable UI components
+│   │   ├── ImagePicker.tsx
+│   │   ├── LoginIllustration.tsx
+│   │   ├── ProgressRings.tsx
+│   │   └── RegisterIllustration.tsx
+│   ├── config/            # App configuration
+│   │   ├── api.ts         # API config
+│   │   ├── colors.ts      # Color palette
+│   │   ├── theme.ts       # Theme tokens (spacing, shadows, commonStyles)
+│   │   └── typography.ts  # Typography scale
+│   ├── context/           # React Context providers
+│   │   ├── authContext.tsx
+│   │   └── healthContext.tsx
+│   ├── navigation/        # Navigation configuration
+│   │   ├── RootNavigator.tsx
+│   │   ├── AppStack.tsx
+│   │   ├── AuthStack.tsx
+│   │   ├── BottomTabs.tsx
+│   │   ├── HealthStack.tsx
+│   │   ├── FunZoneStack.tsx
+│   │   └── SettingsStack.tsx
+│   ├── screens/           # Screen components
+│   │   ├── AuthScreens/          # Login, Register
+│   │   ├── DrawerScreens/        # Admin, Announcements, Chat
+│   │   ├── FunZoneScreens/       # Competitions, Posts
+│   │   ├── HealthTrackScreens/   # Health metric details
+│   │   ├── OnboardingScreens/    # Welcome flow
+│   │   ├── SettingsScreens/      # Profile, Edit Profile
+│   │   └── TabScreens/           # Home, Attendance, Fitness, etc.
+│   ├── services/          # API service layer
+│   │   ├── announcementService.ts
+│   │   ├── attendanceService.ts
+│   │   ├── authService.ts
+│   │   ├── eventService.ts
+│   │   └── healthConnectService.ts
+│   ├── types/             # TypeScript type declarations
+│   │   └── env.d.ts
+│   └── utils/             # Shared utilities
+│       └── asyncStorage.ts
+├── App.tsx                # Application entry point
+├── index.js               # React Native entry point
+├── package.json
+├── tsconfig.json
+└── ...
+```
+
+---
+
+## 📦 Installation
+
+### Prerequisites
+
+- **Node.js** >= 18
+- **npm** or **yarn**
+- **React Native CLI** set up (see [React Native Environment Setup](https://reactnative.dev/docs/environment-setup))
+- **Android Studio** (for Android development)
+- **Xcode** (for iOS development, macOS only)
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/your-username/reteamnow-app.git
+cd Reteamnow-app
+```
+
+### Step 2: Install Dependencies
+
+```bash
+npm install
+```
+
+### Step 3: Install iOS Pods (iOS only)
+
+```bash
+cd ios && pod install && cd ..
+```
+
+### Step 4: Configure Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your backend API base URL (see [Environment Variables](#environment-variables)).
+
+---
+
+## 🔐 Environment Variables
+
+The app uses `react-native-dotenv` to manage environment configuration.
+
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `API_BASE_URL` | Backend API base URL | **Yes** | `http://localhost:8062/api` |
+
+Create a `.env` file in the project root:
+
+```env
+API_BASE_URL=http://your-backend-server.com/api
+```
+
+> ⚠️ **Never commit `.env` to version control.** The `.gitignore` already excludes it.
+
+---
+
+## 🎯 Running Locally
+
+### Start Metro Bundler
+
+```bash
+npm start
+```
+
+### Run on Android
+
+```bash
+npm run android
+```
+
+### Run on iOS
+
+```bash
+npm run ios
+```
+
+### Run Tests
+
+```bash
+npm test
+```
+
+### Lint Code
+
+```bash
+npm run lint
+```
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+  <img src="assets/screenshots/dashboard.png" alt="Dashboard Screen" width="250" />
+  <img src="assets/screenshots/features.png" alt="Features Screen" width="250" />
+</div>
+
+---
+<!-- ## 🎥 Demo
+
+[Insert Demo Video]
+
+--- -->
+
+## 📡 API Reference
+
+The app communicates with a RESTful backend API at the configured `API_BASE_URL`. Below are the main endpoints used:
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/login` | User login |
+| POST | `/user/create-user` | User registration |
+
+### Attendance
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/attendance/checkin` | Check in |
+| POST | `/attendance/checkout` | Check out |
+| GET | `/attendance/today/:userId` | Today's status |
+| GET | `/attendance/history/:userId` | Attendance history |
+
+### Announcements
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/announcements` | List announcements |
+| PATCH | `/announcements/:id/like` | Like an announcement |
+| PATCH | `/announcements/:id/mark-read` | Mark as read |
+
+### Events & Competitions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/event/competitions` | List competitions |
+| GET | `/event/competitions/:id` | Competition details |
+| GET | `/event/competitions/:id/posts` | Competition posts |
+| POST | `/event/competitions/:id/posts` | Create post |
+| POST | `/event/posts/:id/react` | React to post |
+| POST | `/event/posts/:id/comments` | Add comment |
+
+---
+
+## 🔮 Future Improvements
+
+- [ ] **Offline Support**: Implement offline-first architecture using WatermelonDB or Realm
+- [ ] **Push Notifications**: Integrate Firebase Cloud Messaging for real-time alerts
+- [ ] **Dark Mode**: Full dark theme support using the existing color system
+- [ ] **i18n**: Multi-language support for international teams
+- [ ] **CI/CD Pipeline**: GitHub Actions for automated testing and builds
+- [ ] **E2E Testing**: Detox or Maestro for end-to-end tests
+- [ ] **Performance**: Implement FlashList for large lists, code-splitting
+- [ ] **Security**: Certificate pinning, biometric authentication
+- [ ] **Analytics**: Integrate with Firebase Analytics or Mixpanel
+- [ ] **Accessibility**: Full VoiceOver/TalkBack support
+
+---
+
+## 📚 Lessons Learned
+
+1. **Health Connect API requires careful permission handling** — The Android Health Connect SDK needs explicit runtime permissions, and the app must handle cases where the user denies or revokes them.
+2. **React Context vs State Management Libraries** — For a mid-sized app like this, React Context with hooks is sufficient and avoids the boilerplate of Redux or Zustand. However, for larger teams or more complex state, a dedicated solution would be better.
+3. **Onboarding Animation Performance** — Using `useNativeDriver: true` and `Animated.spring` for the onboarding screens required careful orchestration to avoid jank. Memoizing components with `useMemo` and `useCallback` is essential.
+4. **Navigation Architecture** — Combining drawer + bottom tab navigation is powerful but requires careful planning to avoid nested navigator issues. Keeping a flat navigation structure where possible simplifies the codebase.
+
+---
+
+<div align="center">
+Thank you for checking out **ReteamNow**!
+</div>

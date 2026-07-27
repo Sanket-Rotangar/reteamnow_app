@@ -4,7 +4,7 @@ import {
   readHeartRate,
   readTotalCaloriesBurned,
   readDistance,
-} from '../services/healthConnectService.ts';
+} from '../services/healthConnectService';
 
 // 1️⃣ Types
 export interface HealthData {

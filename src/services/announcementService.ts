@@ -1,8 +1,6 @@
 // src/services/announcementService.ts
 import axios from "axios";
 import { API_BASE_URL } from '../config/api';
-// import { API_BASE_URL } from './authService';
-// export const API_BASE_URL = "http://192.168.1.7:8062/api";
 
 // types
 export type Announcement = {

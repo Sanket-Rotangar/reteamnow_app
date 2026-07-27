@@ -25,19 +25,6 @@ import Toast from 'react-native-toast-message';
 import { AuthContext } from '../../context/authContext';
 import { colors } from '../../config/colors';
 
-// Interface for user profile
-interface UserProfile {
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  department: string;
-  employeeId: string;
-  joinDate: string;
-  phone: string;
-  avatar: string;
-}
-
 // Interface for app preferences
 interface AppPreferences {
   darkMode: boolean;
@@ -209,7 +196,7 @@ const SettingsScreen = () => {
             <View style={styles.profileHeader}>
               <Image
                 source={{
-                  uri: 'https://img.freepik.com/premium-photo/hooded-hacker-logo-mascot_941097-24659.jpg',
+                  uri: userInfo?.profile_picture || 'https://ui-avatars.com/api/?name=User&background=007AFF&color=fff',
                 }}
                 style={styles.profileImage}
               />

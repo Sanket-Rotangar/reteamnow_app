@@ -1,17 +1,8 @@
 /**
- * Modern Home Screen - Professional Dashboard
+ * Modern Home Screen — Professional Dashboard
  *
- * Following the 10-30-60 design rule with proper spacing and light theme
- * Structure i  useEffect(() => {
-    // Fetch today's health data on mount
-    const start = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-    const end = new Date().toISOString();
-    refreshHealthData(start, end);
-
-    // Fetch attendance data
-    fetchAttendanceData();
-  }, [refreshHealthData]);d by GoogleFit.tsx with enhanced typography and layout
- * Balance between dashboard functionality and good UI design
+ * Following the 10-30-60 design rule with proper spacing and light theme.
+ * Balance between dashboard functionality and good UI design.
  */
 
 import React, { useState, useContext, useEffect } from 'react';
@@ -152,11 +143,12 @@ const HomeScreen = () => {
     return () => clearInterval(timer);
   }, []);
 
-    useEffect(() => {
-    // Fetch today’s data on mount
+  useEffect(() => {
+    // Fetch today's health and attendance data on mount
     const start = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
     const end = new Date().toISOString();
     refreshHealthData(start, end);
+    fetchAttendanceData();
   }, [refreshHealthData]);
 
   const getGreeting = () => {
@@ -174,9 +166,8 @@ const HomeScreen = () => {
     });
   };
 
-  const handleCardPress = (cardType: string) => {
-    console.log(`Opening ${cardType} details...`);
-    // Add navigation logic here
+  const handleCardPress = (_cardType: string) => {
+    // TODO: Implement navigation to card detail screens
   };
 
   const renderCard = (card: any, _index: number) => {
@@ -353,7 +344,7 @@ const HomeScreen = () => {
           <View style={styles.profileImageContainer}>
             <Image
               source={{
-                uri: 'https://img.freepik.com/premium-photo/hooded-hacker-logo-mascot_941097-24659.jpg',
+                uri: userInfo?.profile_picture || 'https://ui-avatars.com/api/?name=User&background=007AFF&color=fff',
               }}
               style={styles.profileImage}
             />

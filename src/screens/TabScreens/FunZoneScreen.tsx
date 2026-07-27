@@ -13,23 +13,12 @@ import {
   StyleSheet,
   Text,
   View,
-  Image,
   TouchableOpacity,
-  FlatList,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '../../config/colors';
-
-// Mock data for leaderboard
-const leaderboardData = [
-  { id: '1', name: 'Sarah Johnson', points: 2840, avatar: 'https://images.unsplash.com/photo-1494790108755-2616b9e48644?w=150', rank: 1, badge: 'Champion', streak: 12 },
-  { id: '2', name: 'Mike Chen', points: 2650, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', rank: 2, badge: 'Expert', streak: 8 },
-  { id: '3', name: 'Emily Davis', points: 2420, avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150', rank: 3, badge: 'Pro', streak: 15 },
-  { id: '4', name: 'Alex Wilson', points: 2180, avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150', rank: 4, badge: 'Rising', streak: 5 },
-  { id: '5', name: 'Lisa Brown', points: 1950, avatar: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=150', rank: 5, badge: 'Talented', streak: 7 },
-];
 
 // Mock data for games
 const ongoingGames = [
@@ -93,61 +82,6 @@ const FunZoneScreen = () => {
 
   const handleViewGame = (gameTitle: string) => {
     showToast(`Viewing ${gameTitle} details 👀`);
-  };
-
-  const renderLeaderboardItem = ({ item, index: _index }: { item: any; index: number }) => {
-    const getRankColor = (rank: number) => {
-      switch(rank) {
-        case 1: return '#FFD700'; // Gold
-        case 2: return '#C0C0C0'; // Silver  
-        case 3: return '#CD7F32'; // Bronze
-        default: return '#8E8E93';
-      }
-    };
-
-    const getBadgeColor = (badge: string) => {
-      switch(badge) {
-        case 'Champion': return '#FF6B6B';
-        case 'Expert': return '#4ECDC4';
-        case 'Pro': return '#45B7D1';
-        case 'Rising': return '#96CEB4';
-        default: return '#8E8E93';
-      }
-    };
-
-    return (
-      <TouchableOpacity 
-        style={styles.leaderboardItem}
-        activeOpacity={0.8}
-        onPress={() => showToast(`Viewing ${item.name}'s profile`)}>
-        
-        <View style={styles.rankSection}>
-          <View style={[styles.rankBadge, { backgroundColor: getRankColor(item.rank) }]}>
-            <Text style={styles.rankText}>{item.rank}</Text>
-          </View>
-        </View>
-
-        <Image source={{ uri: item.avatar }} style={styles.avatarImage} />
-        
-        <View style={styles.playerInfo}>
-          <Text style={styles.playerName}>{item.name}</Text>
-          <View style={styles.badgeContainer}>
-            <View style={[styles.badge, { backgroundColor: getBadgeColor(item.badge) }]}>
-              <Text style={styles.badgeText}>{item.badge}</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.statsSection}>
-          <Text style={styles.pointsText}>{item.points.toLocaleString()}</Text>
-          <Text style={styles.pointsLabel}>points</Text>
-          <View style={styles.streakInfo}>
-            <Icon name="flame" size={12} color="#FF9500" />
-            <Text style={styles.streakText}>{item.streak}</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
   };
 
   const renderGameCard = (game: any, type: 'ongoing' | 'recent' | 'upcoming') => {
@@ -389,139 +323,12 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
 
-  // Leaderboard Section
-  leaderboardSection: {
-    paddingHorizontal: 15,
-    paddingTop: 20,
-    paddingBottom: 15,
-  },
-
-  sectionHeader: {
-    marginBottom: 15,
-  },
-
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
     color: '#1D1D1F',
     fontFamily: 'SF Pro Display',
     marginBottom: 4,
-  },
-
-  sectionSubtitle: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: '#8E8E93',
-    fontFamily: 'SF Pro Text',
-  },
-
-  leaderboardCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 0.5,
-    borderColor: '#E5E5EA',
-  },
-
-  // Leaderboard Items
-  leaderboardItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
-  },
-
-  rankSection: {
-    marginRight: 12,
-  },
-
-  rankBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  rankText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    fontFamily: 'SF Pro Display',
-  },
-
-  avatarImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-
-  playerInfo: {
-    flex: 1,
-  },
-
-  playerName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1D1D1F',
-    fontFamily: 'SF Pro Display',
-    marginBottom: 4,
-  },
-
-  badgeContainer: {
-    flexDirection: 'row',
-  },
-
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    fontFamily: 'SF Pro Text',
-  },
-
-  statsSection: {
-    alignItems: 'flex-end',
-  },
-
-  pointsText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1D1D1F',
-    fontFamily: 'SF Pro Display',
-  },
-
-  pointsLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#8E8E93',
-    fontFamily: 'SF Pro Text',
-  },
-
-  streakInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-
-  streakText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#FF9500',
-    fontFamily: 'SF Pro Text',
-    marginLeft: 2,
   },
 
   // Games Section
@@ -784,23 +591,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  viewAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: `${colors.primary}08`,
-    borderRadius: 12,
-  },
-
-  viewAllText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primary,
-    marginRight: 6,
-  },
 });
 
 export default FunZoneScreen;

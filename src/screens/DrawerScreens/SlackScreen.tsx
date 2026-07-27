@@ -1,15 +1,14 @@
 /**
- * Team Communication Hub - Slack-Inspired Interface
- * 
+ * Team Communication Hub — Slack-Inspired Interface
+ *
  * Modern workplace communication platform with:
  * - Channel-based messaging system
  * - Direct messages and group chats
  * - File sharing and media support
  * - Real-time notifications and presence
  * - Thread-based conversations
- * 
- * UI Design: Professional, clean, and intuitive
- * Following company design system consistency
+ *
+ * UI Design: Professional, clean, and intuitive.
  */
 
 import React, { useState } from 'react';
@@ -29,24 +28,26 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 
+import { colors as themeColors } from '../../config/colors';
+
 /**
- * Color Palette - Consistent with app design
+ * Color Palette — Consistent with app design system
  */
 const colors = {
-  primary: '#007AFF',
-  secondary: '#5856D6',
-  success: '#30D158',
-  warning: '#FF9500',
-  error: '#FF3B30',
-  background: '#F8F9FA',
-  surface: '#FFFFFF',
-  text: '#1D1D1F',
-  textSecondary: '#8E8E93',
-  border: '#E5E5EA',
-  accent: '#F2F2F7',
-  online: '#30D158',
-  away: '#FF9500',
-  offline: '#8E8E93',
+  primary: themeColors.primary,
+  secondary: themeColors.secondary,
+  success: themeColors.success,
+  warning: themeColors.warning,
+  error: themeColors.danger,
+  background: themeColors.background,
+  surface: themeColors.surface,
+  text: themeColors.text,
+  textSecondary: themeColors.textSecondary,
+  border: themeColors.border,
+  accent: themeColors.accent,
+  online: themeColors.success,
+  away: themeColors.warning,
+  offline: themeColors.textSecondary,
 };
 
 /**

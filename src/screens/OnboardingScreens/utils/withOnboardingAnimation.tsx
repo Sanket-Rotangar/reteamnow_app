@@ -10,6 +10,7 @@ export const withOnboardingAnimation = <T extends object>(
 ) => {
   const OptimizedComponent = memo((props: T & WithOnboardingAnimationProps) => {
     const hasInitialized = useRef(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { screenKey, ...otherProps } = props;
 
     useEffect(() => {

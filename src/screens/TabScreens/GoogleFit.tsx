@@ -118,15 +118,16 @@ const ModernChartCard: React.FC<{
   </View>
 );
 
-// Centralized data generation function
+// Centralized data generation function using stable seeded-like values
 const generateChartData = (
   days: string[],
-  valueGenerator: () => number,
+  baseValue: number,
+  variance: number,
   frontColor: string
 ) => {
-  return days.map((day) => ({
+  return days.map((day, index) => ({
     label: day,
-    value: valueGenerator(),
+    value: baseValue + ((index * 137 + 50) % (variance * 2) - variance),
     frontColor: frontColor,
   }));
 };
@@ -310,7 +311,7 @@ const GoogleFit: React.FC<{ navigation: any }> = ({ navigation }) => {
               <Ionicons name="time" size={20} color="#007AFF" />
             </View>
             <Text style={styles.compactMetricValue}>
-              {loading ? '...' : (Math.random() * 60 + 30).toFixed(0)}
+              {loading ? '...' : '45'}
             </Text>
             <Text style={styles.compactMetricLabel}>min</Text>
           </View>
@@ -352,7 +353,7 @@ const GoogleFit: React.FC<{ navigation: any }> = ({ navigation }) => {
           value={heartRate}
           valueColor="#30D158"
           onPress={() => navigation.navigate('HeartPointsDetail')}
-          chartData={generateChartData(days, () => Math.floor(Math.random() * 30) + 10, '#30D158')}
+          chartData={generateChartData(days, 25, 15, '#30D158')}
           chartMaxValue={40}
         />
 
@@ -362,7 +363,7 @@ const GoogleFit: React.FC<{ navigation: any }> = ({ navigation }) => {
           value={steps}
           valueColor="#007AFF"
           onPress={() => navigation.navigate('StepsDetail')}
-          chartData={generateChartData(days, () => Math.floor(Math.random() * 15000) + 5000, '#007AFF')}
+          chartData={generateChartData(days, 10000, 5000, '#007AFF')}
           chartMaxValue={20000}
         />
 
@@ -372,7 +373,7 @@ const GoogleFit: React.FC<{ navigation: any }> = ({ navigation }) => {
           value={calories}
           valueColor="#FF3B30"
           onPress={() => navigation.navigate('EnergyDetail')}
-          chartData={generateChartData(days, () => Math.floor(Math.random() * 500) + 200, '#FF3B30')}
+          chartData={generateChartData(days, 400, 200, '#FF3B30')}
           chartMaxValue={800}
         />
       </ScrollView>

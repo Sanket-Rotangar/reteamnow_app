@@ -6,7 +6,7 @@
  * Modern card-based layout with intuitive interactions
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -18,12 +18,13 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
+import { AuthContext } from '../../context/authContext';
 import {
   checkInUser,
   checkOutUser,
   getTodayAttendance,
   getAttendanceHistory,
-} from '../../services/attendanceService.ts';
+} from '../../services/attendanceService';
 import { checkUnreadRequiredAnnouncements } from '../../services/announcementService';
 // Interface for attendance status
 interface AttendanceStatus {
@@ -46,6 +47,9 @@ interface LeaveApplication {
 }
 
 const AttendanceScreen = () => {
+  const { userInfo } = useContext(AuthContext);
+  const userId = userInfo?._id ?? '';
+
   const [attendanceStatus, setAttendanceStatus] = useState<AttendanceStatus>({
     isCheckedIn: false,
     date: new Date().toDateString(),
@@ -157,8 +161,7 @@ const AttendanceScreen = () => {
     try {
       if (!attendanceStatus.isCheckedIn) {
         // First check for unread required announcements before allowing check-in
-        const MOCK_USER_ID = '64efbde67d4a9938bc123456'; // replace with auth later
-        const unreadCheck = await checkUnreadRequiredAnnouncements(MOCK_USER_ID);
+        const unreadCheck = await checkUnreadRequiredAnnouncements(userId);
         
         if (unreadCheck.hasUnreadRequired) {
           Toast.show({

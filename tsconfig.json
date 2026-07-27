@@ -7,7 +7,7 @@
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "strict": false,
+    "strict": false, /* TODO: Enable strict mode after resolving all type issues */
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "bundler",
     "resolveJsonModule": true,

@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet, Text, View, Platform } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 // Import screens according to requirements
 import HomeScreen from '../screens/TabScreens/HomeScreen';

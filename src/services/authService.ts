@@ -2,8 +2,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
-// export const API_BASE_URL = 'https://app-backend-production-31a4.up.railway.app/api';
-
 export const registerUser = async (
   fname: string,
   lname: string,

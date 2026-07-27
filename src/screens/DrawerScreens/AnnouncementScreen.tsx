@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useContext } from 'react';
 import {
   FlatList,
   ActivityIndicator,
@@ -16,9 +16,8 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { AuthContext } from '../../context/authContext';
 import { getAnnouncements, likeAnnouncement, markAsRead } from '../../services/announcementService';
-
-const MOCK_USER_ID = '64efbde67d4a9938bc123456'; // replace with auth later
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
@@ -157,26 +156,30 @@ const AnnouncementCard = ({ item, onLike, onToggleRead, onShare }: {
 
 // ---- Main Screen ----
 const AnnouncementScreen = () => {
+  const { userInfo } = useContext(AuthContext);
+  const userId = userInfo?._id ?? '';
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<'All' | 'Unread'>('All');
 
   const fetchData = useCallback(async () => {
+    if (!userId) return;
     setLoading(true);
     try {
       const filterParam = filter.toLowerCase() as 'all' | 'unread';
-      const data = await getAnnouncements(filterParam, MOCK_USER_ID);
+      const data = await getAnnouncements(filterParam, userId);
       setAnnouncements(data);
     } catch (error) {
       console.error('Error fetching announcements:', error);
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, userId]);
 
   const handleLike = async (id: string) => {
+    if (!userId) return;
     try {
-      const result = await likeAnnouncement(id, MOCK_USER_ID);
+      const result = await likeAnnouncement(id, userId);
       setAnnouncements(prev =>
         prev.map(item =>
           item._id === id
@@ -195,8 +198,9 @@ const AnnouncementScreen = () => {
   };
 
   const handleToggleRead = async (id: string) => {
+    if (!userId) return;
     try {
-      const result = await markAsRead(id, MOCK_USER_ID);
+      const result = await markAsRead(id, userId);
       setAnnouncements(prev =>
         prev.map(item =>
           item._id === id

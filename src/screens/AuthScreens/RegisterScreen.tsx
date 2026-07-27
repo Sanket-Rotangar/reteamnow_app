@@ -1,5 +1,5 @@
 // src/screens/RegisterScreen.tsx
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
   ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { AuthContext } from '../../context/authContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../config/colors';
 import { fontSizes, fontWeights } from '../../config/typography';

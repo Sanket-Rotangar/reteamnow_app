@@ -12,7 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { AuthContext } from '../../context/authContext.tsx';
+import { AuthContext } from '../../context/authContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../config/colors';
 import { fontSizes, fontWeights } from '../../config/typography';
@@ -77,14 +77,6 @@ const LoginScreen = ({ navigation }) => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Development helper function
-  const fillTestCredentials = () => {
-    setEmail('sanket10@example.com');
-    setPassword('Salsal');
-    setEmailError('');
-    setPasswordError('');
   };
 
   const getInputStyle = (error: string, value: string) => {
@@ -154,14 +146,6 @@ const LoginScreen = ({ navigation }) => {
               />
               {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
             </View>
-
-            {/* Development Button - Remove after development */}
-            <TouchableOpacity 
-              style={styles.devButton}
-              onPress={fillTestCredentials}
-            >
-              <Text style={styles.devButtonText}>🚧 Fill Test Credentials (Dev)</Text>
-            </TouchableOpacity>
 
             {/* Forgot Password */}
             <TouchableOpacity style={styles.forgotPasswordContainer}>
