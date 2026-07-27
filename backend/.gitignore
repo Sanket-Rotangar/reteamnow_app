@@ -1,7 +1,53 @@
+# ====================
+# Environment Variables
+# ====================
 .env
 .env.local
 .env.dev
-node_modules
-pm2.json
+.env.production
+.env.staging
+
+# ====================
+# Dependencies
+# ====================
+node_modules/
 package-lock.json
 pnpm-lock.yaml
+
+# ====================
+# Secrets & Credentials
+# ====================
+utils/service-account.json
+*.pem
+*.key
+*.cert
+
+# ====================
+# PM2 / Process Management
+# ====================
+pm2.json
+pm2-*.json
+
+# ====================
+# Uploaded Files
+# ====================
+uploads/*
+!uploads/.gitkeep
+
+# ====================
+# OS & IDE
+# ====================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# ====================
+# Build & Logs
+# ====================
+*.log
+npm-debug.log*
+build/
+dist/
