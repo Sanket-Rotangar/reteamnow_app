@@ -39,6 +39,8 @@ local.properties
 #
 reteamnow-backend/
 node_modules/
+backend/node_modules/
+backend/package-lock.json
 CHANGELOG.md
 requirements.md
 npm-debug.log
@@ -73,6 +75,12 @@ yarn-error.log
 .env.local
 .env.production
 .env.staging
+backend/.env
+
+# Backend specific
+backend/uploads/
+backend/ecosystem.config.js
+backend/pm2.json
 
 # Build artifacts
 android/app/build/

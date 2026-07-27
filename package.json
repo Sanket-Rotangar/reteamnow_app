@@ -22,7 +22,10 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "clean": "cd android && ./gradlew clean && cd .. && cd ios && xcodebuild clean && cd ..",
-    "reset": "npx react-native start --reset-cache"
+    "reset": "npx react-native start --reset-cache",
+    "backend:dev": "cd backend && npm run dev",
+    "backend:start": "cd backend && npm start",
+    "backend:install": "cd backend && npm install"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",

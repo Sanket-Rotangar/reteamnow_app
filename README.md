@@ -134,6 +134,18 @@ ReteamNow is a **React Native** mobile application that helps organizations fost
 | **react-native-gifted-charts** | Health metric charts |
 | **AsyncStorage** | Local persistence for auth tokens |
 
+### Backend Server
+
+| Technology | Purpose |
+|------------|---------|
+| **Node.js / Express** | REST API server |
+| **MongoDB / Mongoose** | Database & ODM |
+| **Socket.IO** | Real-time communication (chat, notifications) |
+| **JWT** | Authentication & authorization |
+| **Node-Cron** | Scheduled tasks & automation |
+| **Nodemailer** | Email notifications |
+| **Google Gemini AI** | AI-powered chatbot features |
+
 ---
 
 ## 📁 Folder Structure
@@ -142,6 +154,21 @@ ReteamNow is a **React Native** mobile application that helps organizations fost
 Reteamnow-app/
 ├── android/               # Android native configuration
 ├── ios/                   # iOS native configuration
+├── backend/               # REST API server (Express + MongoDB)
+│   ├── config/            # Server configuration
+│   ├── constants/         # Enums & constants
+│   ├── controllers/       # Route handlers
+│   ├── errors/            # Custom error classes
+│   ├── middlewares/        # Express middlewares
+│   ├── models/            # Mongoose schemas
+│   ├── routes/            # API route definitions
+│   ├── scripts/           # Utility scripts
+│   ├── service/           # Business logic layer
+│   ├── utils/             # Shared utilities
+│   ├── uploads/           # File uploads directory
+│   ├── app.js             # Express app setup
+│   ├── index.js           # Server entry point
+│   └── package.json
 ├── assets/                # Static assets
 │   ├── bootsplash/        # Boot splash screen assets
 │   ├── screenshots/       # App screenshots (add your own)
@@ -234,6 +261,21 @@ cp .env.example .env
 
 Edit `.env` with your backend API base URL (see [Environment Variables](#environment-variables)).
 
+### Step 5: Install Backend Dependencies
+
+```bash
+npm run backend:install
+# or
+cd backend && npm install
+```
+
+### Step 6: Configure Backend Environment
+
+```bash
+cp backend/.env.example backend/.env
+# Edit backend/.env with your database URI, JWT secret, and API keys
+```
+
 ---
 
 ## 🔐 Environment Variables
@@ -251,6 +293,19 @@ API_BASE_URL=http://your-backend-server.com/api
 ```
 
 > ⚠️ **Never commit `.env` to version control.** The `.gitignore` already excludes it.
+
+### Backend Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `MONGO_URI` | MongoDB connection URI | **Yes** |
+| `MONGODB_NAME` | MongoDB database name | **Yes** |
+| `JWT_SECRET` | Secret key for JWT signing | **Yes** |
+| `PORT` | Server port | No (default: 8017) |
+| `CLIENT_URL` | Frontend client origin for CORS | **Yes** |
+| `GEMINI_API_KEY` | Google Gemini AI API key | For AI features |
+| `OPENAI_API_KEY` | OpenAI API key | For AI features |
+| `EMAIL_USER` / `EMAIL_PASS` | SMTP credentials | For email features |
 
 ---
 
@@ -285,6 +340,18 @@ npm test
 ```bash
 npm run lint
 ```
+
+### Run Backend Server
+
+```bash
+# Development mode (with auto-reload)
+npm run backend:dev
+
+# Production mode (via PM2)
+npm run backend:start
+```
+
+The backend API will be available at `http://localhost:8017`.
 
 ---
 

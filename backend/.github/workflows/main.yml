@@ -1,0 +1,37 @@
+name: Deploy Reteamnow Backend
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  pull_code:
+    if: github.event.pull_request.merged == true
+    runs-on: self-hosted
+    steps:
+      - name: Pull latest code to server
+        run: |
+          cd /home/reteamnow-api/reteamnow-backend
+          git pull origin main
+
+  install_dependencies:
+    needs: pull_code
+    runs-on: self-hosted
+    steps:
+      - name: Install dependencies
+        run: |
+          cd /home/reteamnow-api/reteamnow-backend
+          npm ci  # use npm install if preferred
+
+  start_app:
+    needs: install_dependencies
+    runs-on: self-hosted
+    steps:
+      - name: Start application with PM2
+        run: |
+          cd /home/reteamnow-api/reteamnow-backend
+          npm stop
+          npm start
